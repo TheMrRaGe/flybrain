@@ -1,0 +1,23 @@
+differential conditioning: punish through PPL105, reward through PAM08
+readout D = d_A(PPL105 MBONs) - d_P(PAM08 MBONs)
+8 paired noise seeds, 12 training trials, 70 mV DAN drive
+odours: ../results/odours3.json (swapped), order per trial: CS+ then CS-, kc_thresh 1.5, apl_scale 0.1, mbon_hold 0.85, core 0.2, rate 0.0003
+
+  readout: 6 MBONs in PPL105, 4 in PAM08, 0 shared (excluded)
+  PPL105  at 70 mV with CS+ present: 277 spikes / 2 cells over 800 ms  (173 Hz per cell)
+  PAM08   at 70 mV with CS- present: 6965 spikes / 50 cells over 800 ms  (174 Hz per cell)
+  naive response, seed 1000:  PPL105 MBONs {'CS+': 53, 'CS-': 50}  d_A +0.0291    PAM08 MBONs {'CS+': 25, 'CS-': 15}  d_P +0.2500
+
+  both             D -0.1511 -> -1.2476   dD -1.0964+-0.0732   [d_A -0.2298  d_P +0.8666]   weights all 99.6% A 98% P 98%   (138s)
+  reversed         D -0.1511 -> +1.3519   dD +1.5030+-0.0694   [d_A +0.3696  d_P -1.1334]   weights all 99.6% A 98% P 98%   (138s)
+
+  both      dD  -1.0964  (sd 0.0732)
+  reversed  dD  +1.5030  (sd 0.0694)
+
+  THE SPECIFICITY TEST - swapping which odour is punished/rewarded must flip the sign of dD
+  sign flipped: YES   p(reversal) MWU = 0.0002   paired Wilcoxon = 0.0078   d' = -36.46
+  seeds with opposite sign in the two arms: 8/8
+
+  ASSOCIATIVE - the shift follows the contingency and reverses with it
+
+wrote ../results/conditioning4c_swap.json

@@ -924,3 +924,39 @@ percent of depression silences them outright. The appetitive core saturates at e
 rate tried (MBON05: 15-25 spikes per odour, ~10-15 Hz per cell, a biological rate
 with no margin). The aversive core is graded at 0.0003 (-0.43 in 12 trials), which is
 the new default. Saturation is the readout's dynamic range, not the learning.
+
+## ASSOCIATIVE AND COMPARTMENT-SPECIFIC — conditioning with anatomical cores (`results/conditioning4c*.json`)
+
+Same protocol as the morning's run; the circuit now has decisions 12-14 and dopamine
+reaches only core compartment members (PPL105: MBON13/18/23; PAM08: MBON05/21).
+8 paired seeds, 12 trials, 70 mV DAN drive, learn_rate 0.0003.
+
+| arm | dD | d_A | d_P | weights (taught compartment) |
+|---|---|---|---|---|
+| punish CS+ / reward CS- | **-1.493** (sd 0.057) | -0.360 | +1.133 | 98% |
+| punish CS- / reward CS+ | **+1.096** (sd 0.064) | +0.230 | -0.867 | 98% |
+| no plasticity | +0.000 | 0 | 0 | 100% |
+| punish only | -0.347 | **-0.325** | **+0.022** | A 98%, P 100% |
+| reward only | -1.145 | **-0.012** | **+1.133** | A 100%, P 98% |
+
+    reversal: 8/8 seeds flip, MWU p = 0.0002, paired Wilcoxon p = 0.0078
+    odours swapped: -1.096 / +1.503, 8/8, same p
+    decomposition: punish-only + reward-only = -1.492   vs both -1.493
+
+Three things the morning's run could not claim:
+
+1. **Each dopamine channel teaches only its own compartment.** PPL105 moves d_A by
+   -0.33 and d_P by +0.02; PAM08 moves d_P by +1.13 and d_A by -0.01. That is the
+   anatomical statement (Aso et al. 2014) measured rather than assumed, and it is the
+   thing the stray-MBON readout could not show.
+2. **The channels add exactly** (-1.492 vs -1.493). The two compartments are
+   independent readouts. The earlier super-additivity was the strays talking to each
+   other through MBON->MBON inhibition.
+3. **Per-seed sd fell from ~0.3 to 0.06.** The core MBONs respond consistently, and
+   2% mean depression in the taught compartment is enough to move the readout by more
+   than one unit.
+
+Caveat, unchanged: the appetitive core saturates - MBON05's CS- response goes to zero
+(d_P at its bound) at any learn rate tried, because it responds at a biological
+10-15 Hz with no margin above threshold. The aversive core is graded. The
+contingency-independent component (+-0.20, mirrored by the swap) is that asymmetry.
