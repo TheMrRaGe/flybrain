@@ -1,0 +1,4 @@
+  File "C:\Users\Shwif\OneDrive\Desktop\flybrain\scripts\learned_dn.py", line 115
+    log(f"
+          ^
+SyntaxError: EOL while scanning string literal

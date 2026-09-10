@@ -1236,3 +1236,28 @@ The DNa steering family is not where it lives (learned_steering3: both -0.07, sd
 0.17). The learned valence is carried by DNd02, DNge069, DNbe007, DNg33 and DNp56.
 What those neurons command in the animal is the next question, and it is a question
 about the literature, not the model.
+
+## What the learned DNs command — traced to muscles in the connectome
+
+`learned_steering3`: DNa family both -0.074, reversed -0.069 (sd 0.16): the DNa
+steering family does not carry the learned signal; the population test already said
+where it lives. Tracing those DNs through the VNC to the 699 muscle-labelled motor
+neurons (`motormap.py`'s map), direct and two-hop, signed:
+
+| DN | nt | direct motor targets | two hops |
+|---|---|---|---|
+| DNbe007 | ACh | T3 MNhl62 (+18), T1 coxa promotor (+9), wing steering ps1 / MNwm35 / MNwm36 / hg4 | T2 trochanter flexor (+12), T1 promotor (+12), T2 tibia extensor (+8) |
+| DNge069 | glutamate (inh.) | **T2 trochanter flexor (-40)**, T2/T1 sternal anterior rotator (-11, -5) | **TTMn +15 (jump muscle)**, T2 sternotrochanter +10 |
+| DNg33 | ACh | abdominal MNad03 A3-A5 (+107), MNad25/22 | wing power DLMn (+20), DVMn (+21) |
+| DNp56 | ACh | none | T1 coxa promotor (+10), T1 tibia extensor (+5) |
+| DNd02 | **unclear** | **none - sign 0, no output in the model** | - |
+
+Leg, wing and abdominal motor DNs. DNge069 suppresses mid-leg lift and primes the
+jump muscle; DNbe007 drives hind-leg and wing-steering motor neurons. DNd02 is the
+largest-z learned cell and cannot transmit: its consensus transmitter is "unclear"
+(the literature has it co-releasing glutamate and tyramine; Cande et al. 2018 has it
+driving slow locomotion), so the model silences it. Another transmitter-label
+consequence, this time on the output side.
+
+For comparison DNa02 (the steering neuron) goes direct to coxa rotators in all three
+legs (+92 / +87 / +64) - a different motor pool, untouched by the learning.

@@ -87,7 +87,8 @@ def main():
         t0 = time.time()
         b = build(a.brain, a)
         dn = b.pop["DN"]; mbon = b.pop["MBON"]
-        idx = np.concatenate([dn, mbon])
+        motor = np.flatnonzero(b.sc.astype(str) == "vnc_motor")
+        idx = np.concatenate([dn, mbon, motor])
         ty = b.type.astype(str)[idx]; side = b.side[idx]
         pre = measure(b, seeds, a, idx)
         train_block(b, a.trials, a.train_ms, True, sched, a.punish_hz, a.punish_mv, order(a),
@@ -102,9 +103,21 @@ def main():
             f"MBON |dS| {np.abs(dS.mean(0)[nd:]).mean():.3f}   ({time.time()-t0:.0f}s)")
         del b
 
-    nd = len(dn)
+    nd = len(dn); nm = len(mbon)
     A, R = res["both"]["dS_mean"][:nd], res["reversed"]["dS_mean"][:nd]
-    Am, Rm = res["both"]["dS_mean"][nd:], res["reversed"]["dS_mean"][nd:]
+    Am, Rm = res["both"]["dS_mean"][nd:nd + nm], res["reversed"]["dS_mean"][nd:nd + nm]
+    Ao, Ro = res["both"]["dS_mean"][nd + nm:], res["reversed"]["dS_mean"][nd + nm:]
+    corr_mo = float(np.corrcoef(Ao, Ro)[0, 1]) if Ao.std() and Ro.std() else float("nan")
+    sdo = np.sqrt((res["both"]["dS_sd"][nd + nm:] ** 2 + res["reversed"]["dS_sd"][nd + nm:] ** 2) / 2)
+    zo = (Ao - Ro) / np.maximum(sdo / np.sqrt(a.repeats) * np.sqrt(2), 1e-9)
+    flip_o = (np.sign(Ao) != np.sign(Ro)) & (np.abs(zo) > 3) & (np.abs(Ao - Ro) > 1.0)
+    tyo = ty[nd + nm:]; sdo_side = side[nd + nm:]
+    log(f"
+  MOTOR NEURONS ({len(Ao)}): corr(dS_both, dS_reversed) {corr_mo:+.3f}; "
+        f"spiking at all: {int((np.abs(res['both']['pre'][nd+nm:]) > 0).sum())}; reversing (|z|>3, >1 spike): {int(flip_o.sum())}")
+    for i in np.argsort(-np.abs(zo))[:12]:
+        if abs(zo[i]) < 2.5: break
+        log(f"    {tyo[i]:<36} {sdo_side[i]}  both {Ao[i]:+6.2f}  reversed {Ro[i]:+6.2f}  z {zo[i]:+5.1f}  naive S {res['both']['pre'][nd+nm+i]:+6.1f}")
     corr_dn = float(np.corrcoef(A, R)[0, 1]) if A.std() and R.std() else float("nan")
     corr_mb = float(np.corrcoef(Am, Rm)[0, 1]) if Am.std() and Rm.std() else float("nan")
     sd = np.sqrt((res["both"]["dS_sd"][:nd] ** 2 + res["reversed"]["dS_sd"][:nd] ** 2) / 2)
@@ -123,6 +136,7 @@ def main():
         log(f"    {ty[i]:<12} {side[i]}  both {A[i]:+7.2f}  reversed {R[i]:+7.2f}  "
             f"z {z[i]:+6.1f}  naive S {res['both']['pre'][i]:+7.1f}")
     out = {"corr_dn": corr_dn, "corr_mbon": corr_mb, "n_flip": int(flip.sum()),
+           "corr_motor": corr_mo, "n_flip_motor": int(flip_o.sum()),
            "n_dn": nd, "top": rows,
            "arms": {k: {"dS_mean": v["dS_mean"].tolist(), "dS_sd": v["dS_sd"].tolist()}
                     for k, v in res.items()},

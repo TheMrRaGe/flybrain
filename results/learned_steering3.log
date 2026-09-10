@@ -2,3 +2,4 @@ learned steering: train through PPL105 / PAM08, read the DNa family
 odours ../results/odours3.json, near 1.0 / far 0.4, 8 paired seeds, 12 trials
 
   both       DNa dV -0.0736+-0.1662   [dA+ -0.0456  dA- +0.0279]   all-DN dV -0.0119   MBON dD -1.7211   (364 DNa spikes/presentation, 256s)
+  reversed   DNa dV -0.0688+-0.1511   [dA+ -0.0409  dA- +0.0279]   all-DN dV -0.0097   MBON dD +0.4716   (364 DNa spikes/presentation, 239s)
