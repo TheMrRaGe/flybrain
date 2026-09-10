@@ -177,8 +177,15 @@ class BoxBrain:
         self.thermo = b.pop.get("thermo", np.zeros(0, int))
         cm = b.pop["motor"]
         self.feed = cm[np.isin(ty[cm], b.FEEDING_MN)]     # proboscis: the feeding readout
-        for d in ("hunger", "thirst", "cold"):
-            b.define_drive(d, "endocrine")
+        # HUNGER THROUGH ITS TARGETS. The peptide cells (IPC, DH44, LK, NPF, Hugin) are
+        # 'unclear' in the transmitter table, sign 0, no outputs - they cannot speak in
+        # a fast-synapse LIF. Two documented targets instead:
+        #   PPL101 = PPL1-gamma1pedc (MB-MP1): active when fed, blocks appetitive memory
+        #   expression; NPF silences it when hungry (Krashes et al. 2009, Cell).
+        #   Sugar GRN gain roughly doubles with starvation via dopamine/DopEcR
+        #   (Inagaki et al. 2012, Cell).
+        self.ppl101 = b._da_by_type["PPL101"]["cells"]
+        self.fed_level, self.taste_gain = 0.0, 1.0
         self.steps = int(round(TICK_MS / b.p.dt))
         self.base = None
         self.mbon = b.pop["MBON"]
@@ -192,13 +199,15 @@ class BoxBrain:
         if smell:
             b.smell_bilateral(smell[0], smell[1])
         if touch is not None:
-            b.taste(+1.0 if touch in ("food", "water") else -1.0)
+            b.taste(self.taste_gain if touch in ("food", "water") else -1.0)
         if len(self.thermo) and temp_err > 0:
             b.drive_hz[self.thermo] = 200.0 * min(1.0, temp_err / 12.0)
         for t in b._da_by_type:
             b._ext[b._da_by_type[t]["cells"]] = 0.0
         if reinforce:
             b.stimulate_type(reinforce, 180.0, 70.0)
+        elif self.fed_level > 0:
+            b._ext[self.ppl101] = 8.0 * self.fed_level          # MB-MP1 tonic when fed
         aL = aR = aLeg = aE = aM = aF = 0
         for _ in range(steps):
             spk = b.step()
@@ -238,8 +247,9 @@ class BoxBrain:
 
     def tick(self, left, right, drives, temp_err, touch, reinforce):
         b = self.b
-        for name, lvl in drives.items():
-            b.set_drive(name, lvl)
+        hunger = drives["hunger"]
+        self.fed_level = 1.0 - hunger
+        self.taste_gain = 0.5 + 0.5 * hunger
         smell = ({k: self.strength * v for k, v in left.items()},
                  {k: self.strength * v for k, v in right.items()})
         L, R, leg, esc, mb, feed = self._run(0.0, 0.0, smell, self.steps, reinforce, touch, temp_err)

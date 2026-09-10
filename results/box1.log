@@ -1,0 +1,17 @@
+loading ../brain_mirrored.npz ...
+  162,517 neurons, 457 leg MNs, calibrated R-share [0.333, 0.773, 0.474, 0.54]   (11s)
+  odours: food=['ORN_VL2p', 'ORN_DA3', 'ORN_DC3', 'ORN_DM5'], water=['ORN_VM4', 'ORN_VA7l', 'ORN_DL5', 'ORN_VC5'], hazard=['ORN_VM5d', 'ORN_DC2', 'ORN_VL1', 'ORN_VA5'], shelter=['ORN_VM1', 'ORN_VA7m', 'ORN_DL2d', 'ORN_VM2']
+  brain persists across lives. Ctrl+C to stop.
+
+  life 1 t=   6.0s pos=(  1.4, -2.8) e=0.98 w=0.99 c=1.00 leg= 421 walk day ate 0 drank 0 hurt 0  w 99.80%
+  life 1 t=  12.0s pos=(-20.5,-12.9) e=0.84 w=0.98 c=1.00 leg= 568 walk day ate 0 drank 0 hurt 4  w 99.59%
+  life 1 t=  18.0s pos=(-30.1, -2.1) e=0.81 w=0.96 c=1.00 leg= 603 walk day ate 0 drank 0 hurt 4  w 99.56%
+  life 1 t=  24.0s pos=(-36.2,  1.4) e=0.79 w=0.95 c=1.00 leg= 385 walk day ate 0 drank 0 hurt 4  w 99.55%
+  life 1 t=  30.0s pos=(-24.5, 14.7) e=0.77 w=0.94 c=1.00 leg= 552 walk day ate 0 drank 0 hurt 4  w 99.52%
+  life 1 t=  36.0s pos=( -4.6, 22.5) e=0.75 w=0.93 c=1.00 leg= 618 walk day ate 0 drank 0 hurt 4  w 99.50%
+  life 1 t=  42.0s pos=( 10.8, 30.4) e=0.73 w=0.92 c=1.00 leg= 495 walk day ate 0 drank 0 hurt 4  w 99.48%
+  life 1 t=  48.0s pos=( 11.2, 30.8) e=0.70 w=0.90 c=1.00 leg= 323 walk day ate 0 drank 0 hurt 4  w 99.46%
+  life 1 t=  54.0s pos=( -5.0, 39.3) e=0.68 w=0.89 c=1.00 leg= 478 walk day ate 0 drank 0 hurt 4  w 99.46%
+  life 1 t=  60.0s pos=(  5.6, 23.8) e=0.66 w=0.88 c=1.00 leg= 432 walk night ate 0 drank 0 hurt 4  w 99.45%
+  life 1 t=  66.0s pos=(  1.4, 31.5) e=0.63 w=0.87 c=0.97 leg= 666 walk night ate 0 drank 0 hurt 4  w 99.30%
+  life 1 t=  72.0s pos=(  7.8, 33.5) e=0.61 w=0.86 c=0.94 leg= 742 walk night ate 0 drank 0 hurt 4  w 99.19%

@@ -782,7 +782,10 @@ class FlyBrain:
     # aversive heavy-metal (Ir47a); LB2, LB4 novel/unassigned. The functional screen
     # was WRONG about LB3d: an aversive type drives the feeding motor neurons harder
     # (1,633) than sugar LB3c (564) - the model's SEZ is not modality-selective.
-    TASTE_SWEET = ("LB3c", "LB3b")
+    # Taste-peg GRNs (dorsal_tpGRN, claw_tpGRN) match Gr5a / Gr64e / Ir56d / Ir60d
+    # lines in the Cell 2026 version - Gr5a and Gr64e are sugar receptors - so their
+    # strong feeding-motor drive in the screen (1,600-1,800) was correct behaviour.
+    TASTE_SWEET = ("LB3c", "LB3b", "dorsal_tpGRN", "claw_tpGRN")
     TASTE_BITTER = ("LB1a", "LB1b", "LB1c", "LB1d")
     TASTE_WATER = ("LB3a",)
     FEEDING_MN = ("MN9", "MN10", "MN11D", "MN11V", "MN12D", "MNx01")

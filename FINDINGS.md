@@ -1369,3 +1369,22 @@ of research, not a parameter.
    channel and sugar-GRN gain, each with its source.
 3. Then the box experiment: lifespan across lives, inherit vs naive, time near
    hazards vs food.
+
+**Sources verified (10 Sept, evening).** Taste pegs: `dorsal_tpGRN` / `claw_tpGRN`
+match Gr5a-, Ir60d-, Ir56d- and Gr64e-GAL4 (Cell 2026 version of the taste-feeding
+connectome) - Gr5a and Gr64e are sugar receptors, so the taste pegs join the sweet
+set and their 1,600-1,800 feeding-motor drive in the screen was right. With the
+mechanosensory confound removed (the box drives none): **sugar set -> 260 proboscis
+motor spikes/tick, rest 4, bitter 0** - selective. Pharyngeal PhG types are not
+mapped to modality in the open-access texts; left out (they fire after ingestion).
+
+Hunger targets, verified: PPL101 = PPL1-gamma1pedc = MB-MP1; "dopaminergic PPL1
+MB-MP1 neurons are inhibited by NPF in hungry flies, allowing the retrieval of
+appetitive memories ... stimulating them suppresses performance in hungry flies"
+(Krashes et al. 2009, Cell) -> tonic drive on PPL101 proportional to satiety.
+"Starvation increases dopaminergic release onto Gr5a sugar-sensing neurons, and
+DopEcR is required in these sensory neurons ... a single dopaminergic neuron
+(TH-VUM) is likely the source" (Inagaki et al. 2012, Cell) -> sugar GRN gain
+0.5 + 0.5 x hunger. Hugin-AstA as a central energy sensor regulating sweet
+sensation (eLife 2025) is consistent with AstA1 being the one hunger cell that
+transmits here.
