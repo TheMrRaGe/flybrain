@@ -1,0 +1,20 @@
+
+== odour none: baseline DN spikes 4259, MBON spikes 261
+  MBON05  driven to    82 Hz/cell (2 cells): DN total   -2146 spikes, |d|>3 in 231/1310 DNs, brain   -26473   top: [('DNg33', -152), ('DNg70', -82), ('DNpe053', -64), ('DNg22', -50), ('MDN', -45), ('DNg98', -44)]   (2s)
+  MBON13  driven to    54 Hz/cell (2 cells): DN total    +337 spikes, |d|>3 in  81/1310 DNs, brain    +7706   top: [('DNg33', 68), ('DNge129', 21), ('DNa06', -18), ('DNg104', 17), ('DNb09', 16), ('DNb06', 16)]   (2s)
+  MBON21  driven to    51 Hz/cell (2 cells): DN total    +831 spikes, |d|>3 in 163/1310 DNs, brain   +11965   top: [('DNg33', 67), ('DNg02_a', 42), ('DNge129', 32), ('DNp31', 30), ('DNg98', 26), ('DNae009', 26)]   (2s)
+  MBON18  driven to    29 Hz/cell (2 cells): DN total   -3703 spikes, |d|>3 in 273/1310 DNs, brain   -46406   top: [('DNg33', -308), ('DNg70', -122), ('MDN', -101), ('DNge129', -101), ('DNpe053', -91), ('DNg22', -88)]   (1s)
+  MBON09  driven to    67 Hz/cell (4 cells): DN total   -2577 spikes, |d|>3 in 274/1310 DNs, brain     +677   top: [('DNge143', 111), ('DNpe053', -88), ('MDN', -81), ('DNg22', -73), ('DNge033', 72), ('DNg33', 72)]   (2s)
+  MBON11  driven to    60 Hz/cell (2 cells): DN total   -1064 spikes, |d|>3 in 170/1310 DNs, brain   -11360   top: [('DNg70', -52), ('MDN', -47), ('DNa13', -43), ('DNg22', -40), ('DNpe053', -38), ('DNg110', -37)]   (2s)
+  MBON30  driven to    89 Hz/cell (2 cells): DN total   -1424 spikes, |d|>3 in 174/1310 DNs, brain   -18004   top: [('DNg70', -50), ('DNg33', 47), ('DNge129', -44), ('DNpe053', -43), ('MDN', -38), ('DNg98', -37)]   (2s)
+
+== odour CS+: baseline DN spikes 6264, MBON spikes 771
+  MBON05  driven to    76 Hz/cell (2 cells): DN total    +202 spikes, |d|>3 in 155/1310 DNs, brain    -1475   top: [('MDN', 46), ('DNg02_a', -44), ('DNp36', 31), ('DNg82', 30), ('DNae009', 29), ('DNbe007', -29)]   (2s)
+  MBON13  driven to    79 Hz/cell (2 cells): DN total    +107 spikes, |d|>3 in 117/1310 DNs, brain    +1502   top: [('MDN', -60), ('DNge037', 47), ('DNge031', 34), ('DNa13', -29), ('DNbe007', 28), ('DNb06', -28)]   (2s)
+  MBON21  driven to     0 Hz/cell (2 cells): DN total    +102 spikes, |d|>3 in 117/1310 DNs, brain    -2909   top: [('DNge031', 51), ('MDN', -45), ('DNge037', 36), ('DNa13', -36), ('DNp13', 32), ('DNp15', 32)]   (2s)
+  MBON18  driven to     0 Hz/cell (2 cells): DN total    +143 spikes, |d|>3 in 124/1310 DNs, brain    +2973   top: [('DNg02_a', 54), ('DNae009', -30), ('DNp31', 21), ('DNg92_b', -21), ('DNpe053', 19), ('DNg22', -17)]   (2s)
+  MBON09  driven to   110 Hz/cell (4 cells): DN total    -311 spikes, |d|>3 in 132/1310 DNs, brain    -6426   top: [('MDN', -54), ('DNge037', 44), ('DNa13', -36), ('DNb06', -30), ('DNg64', -28), ('DNge046', -27)]   (2s)
+  MBON11  driven to    81 Hz/cell (2 cells): DN total    -203 spikes, |d|>3 in 133/1310 DNs, brain    -4785   top: [('MDN', -48), ('DNge031', 43), ('DNa13', -35), ('DNge037', 29), ('DNp15', 27), ('DNg110', -27)]   (2s)
+  MBON30  driven to    32 Hz/cell (2 cells): DN total     +58 spikes, |d|>3 in 136/1310 DNs, brain     -101   top: [('MDN', -48), ('DNge031', 37), ('DNa13', -31), ('DNg110', -30), ('DNge037', 27), ('DNp15', 24)]   (2s)
+
+wrote ../results/mbon_to_dn.json

@@ -54,10 +54,10 @@ def readouts(b):
             "DN|L": dn[sd == "L"], "DN|R": dn[sd == "R"]}
 
 
-def present(b, groups, odour, side, contra, seed, settle_ms, ms):
+def present(b, groups, odour, side, contra, seed, settle_ms, ms, strength=1.0):
     reseed(b, seed)
     b.reset()
-    ipsi, other = {odour: 1.0}, {odour: contra}
+    ipsi, other = {odour: strength}, {odour: contra * strength}
     b.smell_bilateral(ipsi if side == "L" else other, ipsi if side == "R" else other)
     quiet(b)
     for _ in range(int(settle_ms / b.p.dt)):
@@ -76,7 +76,7 @@ def measure(b, groups, seed, a):
     T, raw = {}, {}
     for o in ("CS+", "CS-"):
         for side in ("L", "R"):
-            c = present(b, groups, o, side, a.contra, seed, a.settle_ms, a.test_ms)
+            c = present(b, groups, o, side, a.contra, seed, a.settle_ms, a.test_ms, a.strength)
             T[(o, side)] = {"DNa": turn(c["DNa|R"], c["DNa|L"]),
                             "DN": turn(c["DN|R"], c["DN|L"])}
             raw[f"{o}|{side}"] = c
@@ -100,7 +100,7 @@ def run_arm(a, plastic, label, schedule):
 
     pre = [measure(b, groups, s, a) for s in seeds]
     train_block(b, a.trials, a.train_ms, plastic, schedule, a.punish_hz, a.punish_mv,
-                order(a))
+                order(a), a.strength)
     post = [measure(b, groups, s, a) for s in seeds]
 
     res = {}
@@ -147,6 +147,7 @@ def main():
     ap.add_argument("--bg-hold", type=float, default=0.0, help="candidate decision 15")
     ap.add_argument("--mbon-hold", type=float, default=0.85)
     ap.add_argument("--kc-thresh", type=float, default=1.5)
+    ap.add_argument("--strength", type=float, default=1.0)
     ap.add_argument("--apl-scale", type=float, default=0.1)
     ap.add_argument("--noise", type=float, default=0.15)
     ap.add_argument("--odours", default="../results/odours3.json")

@@ -1137,3 +1137,56 @@ learning that is associative, reversible, and anatomically compartment-specific 
 whole-CNS connectome model, with the finding that it does not (yet) reach descending
 behaviour clearly diagnosed and localised. Reaching behaviour is now a separate,
 scoped research question, not a bug to patch.
+
+## The MB -> DN pathway is live in a quiet brain and swamped by the odour (`mbon_to_dn.py`)
+
+Instead of opening intermediate layers, ask directly: drive one MBON type at a
+physiological rate and count what moves on the action bus. 20 mV tonic, 800 ms, paired
+seed against the same condition with the MBON quiet.
+
+**No odour** - the pathway is strong, specific and signed:
+
+| MBON driven | rate | DN total change | DNs moved (>3 spikes) | biggest |
+|---|---|---|---|---|
+| MBON05 (gamma4, glut) | 82 Hz | **-2,146** | 231 | DNg33 -152, DNg70 -82, MDN -45 |
+| MBON18 (alpha2sc) | 29 Hz | **-3,703** | 273 | DNg33 -308, MDN -101 |
+| MBON21 (gamma4gamma5, ACh) | 51 Hz | **+831** | 163 | DNg33 +67, DNg02 +42, DNp31 +30 |
+| MBON13 (alpha'2) | 54 Hz | +337 | 81 | DNg33 +68 |
+| MBON09 (gamma3beta'1, GABA) | 67 Hz | -2,577 | 274 | DNge143 +111, MDN -81 |
+
+Individual MBON types move hundreds of DNs by thousands of spikes, with opposite
+signs (MBON05 and MBON21 - the two appetitive-core cells - push DNg33 in opposite
+directions), and reach MDN, the moonwalker backward-walking command neuron.
+
+**With CS+ at full strength** the same drives move +202, +107, -311 - ten to twenty
+times less - and MBON18/MBON21 cannot fire at all under 20 mV. The odour-evoked state
+shuts the convergence layer during exactly the window the learning is read in.
+
+**Why: the central brain is inhibition-dominated, and the odour pathway is
+all-or-none at the DNs.** Spike counts, central neurons (not sensory, KC or DN):
+
+| odour strength | ORN Hz | own-PN Hz | LH spikes | central E | central I | I/E | DN spikes |
+|---|---|---|---|---|---|---|---|
+| 0 (MBON hold only) | 0 | 0 | 123 | 13,111 | 25,493 | **1.94** | 4,259 |
+| 0.1 | 19 | 38 | 1,524 | 17,312 | 30,213 | 1.75 | 4,231 |
+| 0.2 | 35 | 88 | 4,450 | 29,290 | 51,668 | 1.76 | **6,732** |
+| 0.5 | 77 | 165 | 10,456 | 34,382 | 56,710 | 1.65 | 6,390 |
+| 1.0 | 124 | 204 | 14,087 | 38,810 | 62,937 | 1.62 | 6,264 |
+
+The chain is graded from receptors through the lateral horn, then the DN population
+jumps to ~6,500 at strength 0.2 and stays there. And the central brain fires
+**1.6-1.9 inhibitory spikes per excitatory spike** at rest and at every intensity:
+inhibitory cells run ~3x the rate of excitatory ones on average. That is the dark
+convergence layer, and it is why none of the four bolt-on fixes could open it.
+
+**The practical route: run the test where the MB is not swamped.** Strength 1.0 is
+200 Hz on every receptor of 8 glomeruli, which pins PNs at 204 Hz (their refractory
+ceiling); real sustained PN rates are 50-130 Hz. At strength 0.35 (PN 130 Hz) with
+kc_thresh 1.0:
+
+    KC 264 / 358 active (6.5-8.8%), Jaccard 0.035 vs 0.040 chance
+    core A 46 / 54, core P 36 / 56  - both cores respond to both odours, with margin
+    MBON05 drive -> DNs with odour present: +992 spikes across 172 DNs  (was +202)
+
+The mushroom body can move the action bus in this regime. `--strength` and
+`--kc-thresh` now thread through conditioning4 / learned_dn / learned_steering.

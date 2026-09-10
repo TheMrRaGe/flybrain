@@ -28,10 +28,10 @@ from conditioning4 import build, reseed, quiet, compartments, train_block, order
 def log(m): print(m, flush=True)
 
 
-def present_all(b, odour, seed, settle_ms, ms, idx):
+def present_all(b, odour, seed, settle_ms, ms, idx, strength=1.0):
     reseed(b, seed)
     b.reset()
-    b.smell({odour: 1.0})
+    b.smell({odour: strength})
     quiet(b)
     for _ in range(int(settle_ms / b.p.dt)):
         b.step()
@@ -45,8 +45,8 @@ def measure(b, seeds, a, idx):
     was, b.plastic_on = b.plastic_on, False
     S = np.zeros((len(seeds), len(idx)), dtype=np.float32)
     for k, s in enumerate(seeds):
-        p = present_all(b, "CS+", s, a.settle_ms, a.test_ms, idx)
-        m = present_all(b, "CS-", s, a.settle_ms, a.test_ms, idx)
+        p = present_all(b, "CS+", s, a.settle_ms, a.test_ms, idx, a.strength)
+        m = present_all(b, "CS-", s, a.settle_ms, a.test_ms, idx, a.strength)
         S[k] = p - m
     b.plastic_on = was
     return S
@@ -69,6 +69,7 @@ def main():
     ap.add_argument("--bg-hold", type=float, default=0.0, help="candidate decision 15")
     ap.add_argument("--mbon-hold", type=float, default=0.85)
     ap.add_argument("--kc-thresh", type=float, default=1.5)
+    ap.add_argument("--strength", type=float, default=1.0)
     ap.add_argument("--apl-scale", type=float, default=0.1)
     ap.add_argument("--noise", type=float, default=0.15)
     ap.add_argument("--odours", default="../results/odours3.json")
@@ -89,7 +90,8 @@ def main():
         idx = np.concatenate([dn, mbon])
         ty = b.type.astype(str)[idx]; side = b.side[idx]
         pre = measure(b, seeds, a, idx)
-        train_block(b, a.trials, a.train_ms, True, sched, a.punish_hz, a.punish_mv, order(a))
+        train_block(b, a.trials, a.train_ms, True, sched, a.punish_hz, a.punish_mv, order(a),
+                    a.strength)
         post = measure(b, seeds, a, idx)
         dS = post - pre                                  # seeds x cells
         res[name] = {"dS_mean": dS.mean(0), "dS_sd": dS.std(0, ddof=1), "pre": pre.mean(0)}

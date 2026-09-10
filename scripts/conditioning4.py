@@ -120,14 +120,14 @@ def disc(c):
     return (c["CS+"] - c["CS-"]) / tot if tot else 0.0
 
 
-def measure(b, ro_a, ro_p, seed, settle_ms, ms, odours=("CS+", "CS-")):
+def measure(b, ro_a, ro_p, seed, settle_ms, ms, odours=("CS+", "CS-"), strength=1.0):
     """Returns (D, d_A, d_P, raw counts). Plasticity off, paired seed."""
     was, b.plastic_on = b.plastic_on, False
     ca, cp = {}, {}
     for o in odours:
         reseed(b, seed)
         b.reset()
-        b.smell({o: 1.0})
+        b.smell({o: strength})
         quiet(b)
         for _ in range(int(settle_ms / b.p.dt)):
             b.step()
@@ -142,13 +142,14 @@ def measure(b, ro_a, ro_p, seed, settle_ms, ms, odours=("CS+", "CS-")):
     return da - dp, da, dp, {"A": ca, "P": cp}
 
 
-def train_block(b, trials, train_ms, plastic, schedule, hz, mv, odours=("CS+", "CS-")):
+def train_block(b, trials, train_ms, plastic, schedule, hz, mv, odours=("CS+", "CS-"),
+                strength=1.0):
     """schedule: {odour: dan_type or None} - which DAN type fires on which odour."""
     was, b.plastic_on = b.plastic_on, plastic
     for _ in range(trials):
         for o in odours:
             b.reset()
-            b.smell({o: 1.0})
+            b.smell({o: strength})
             quiet(b)
             if schedule.get(o):
                 b.stimulate_type(schedule[o], hz, mv)
@@ -160,11 +161,11 @@ def train_block(b, trials, train_ms, plastic, schedule, hz, mv, odours=("CS+", "
     b.plastic_on = was
 
 
-def teaching_check(b, dan_type, odour, mv, ms=800.0):
+def teaching_check(b, dan_type, odour, mv, ms=800.0, strength=1.0):
     """Spikes the driven DAN type fires with the odour present - the trap that sank
     every stimulate()-based protocol was a punishment that never arrived."""
     b.reset()
-    b.smell({odour: 1.0})
+    b.smell({odour: strength})
     quiet(b)
     b.stimulate_type(dan_type, 180.0, mv)
     cells = b._da_by_type[dan_type]["cells"]
@@ -183,11 +184,12 @@ def run_arm(path, args, plastic, label, schedule):
     seeds = [1000 + 97 * i for i in range(args.repeats)]
 
     od = order(args)
-    pre = np.array([measure(b, ro_a, ro_p, s, args.settle_ms, args.test_ms, od)[:3]
+    st = args.strength
+    pre = np.array([measure(b, ro_a, ro_p, s, args.settle_ms, args.test_ms, od, st)[:3]
                     for s in seeds])
     train_block(b, args.trials, args.train_ms, plastic, schedule, args.punish_hz,
-                args.punish_mv, od)
-    post = np.array([measure(b, ro_a, ro_p, s, args.settle_ms, args.test_ms, od)[:3]
+                args.punish_mv, od, st)
+    post = np.array([measure(b, ro_a, ro_p, s, args.settle_ms, args.test_ms, od, st)[:3]
                      for s in seeds])
 
     delta = post - pre                        # columns: D, d_A, d_P
@@ -229,6 +231,10 @@ def main():
     ap.add_argument("--bg-hold", type=float, default=0.0, help="candidate decision 15")
     ap.add_argument("--mbon-hold", type=float, default=0.85, help="decision 14")
     ap.add_argument("--kc-thresh", type=float, default=1.5)
+    ap.add_argument("--strength", type=float, default=1.0,
+                    help="odour strength (1.0 = 200 Hz receptors, saturates PNs and the "
+                         "DN response; 0.35 with kc_thresh 1.0 leaves the DNs sensitive "
+                         "to MBON output)")
     ap.add_argument("--apl-scale", type=float, default=0.1,
                     help="gain on the real APL neuron (decision 12); 0.1 gives ~5%% KCs")
     ap.add_argument("--noise", type=float, default=0.15)
@@ -269,7 +275,7 @@ def main():
     log(f"odours: {a.odours or 'alphabetical'}{' (swapped)' if a.swap else ''}, "
         f"order per trial: {' then '.join(order(a))}, "
         f"kc_thresh {a.kc_thresh}, apl_scale {a.apl_scale}, mbon_hold {a.mbon_hold}, "
-        f"core {a.core}, rate {a.rate}\n")
+        f"core {a.core}, rate {a.rate}, strength {a.strength}\n")
 
     # the teaching signals must actually arrive during the odour
     b = build(a.brain, a)
@@ -278,12 +284,12 @@ def main():
         f"{n_shared} shared (excluded)")
     checks = {}
     for dan, od in ((AV, "CS+"), (AP, "CS-")):
-        n, k = teaching_check(b, dan, od, a.punish_mv)
+        n, k = teaching_check(b, dan, od, a.punish_mv, strength=a.strength)
         checks[dan] = {"spikes": n, "cells": k}
         log(f"  {dan:<7} at {a.punish_mv:.0f} mV with {od} present: "
             f"{n} spikes / {k} cells over 800 ms  ({n/k/0.8:.0f} Hz per cell)")
     # do the two compartments even see the odours at rest?
-    _, dA0, dP0, raw = measure(b, ro_a, ro_p, 1000, a.settle_ms, a.test_ms)
+    _, dA0, dP0, raw = measure(b, ro_a, ro_p, 1000, a.settle_ms, a.test_ms, strength=a.strength)
     log(f"  naive response, seed 1000:  {AV} MBONs {raw['A']}  d_A {dA0:+.4f}    "
         f"{AP} MBONs {raw['P']}  d_P {dP0:+.4f}\n")
     del b
@@ -291,7 +297,7 @@ def main():
     out = {"brain": a.brain, "aversive": AV, "appetitive": AP,
            "swap": a.swap, "cs_minus_first": a.cs_minus_first,
            "repeats": a.repeats, "trials": a.trials, "punish_mv": a.punish_mv,
-           "rate": a.rate, "core": a.core, "mbon_hold": a.mbon_hold,
+           "rate": a.rate, "core": a.core, "mbon_hold": a.mbon_hold, "strength": a.strength,
            "kc_thresh": a.kc_thresh, "apl_scale": a.apl_scale,
            "noise": a.noise, "odours": a.odours,
            "teaching_check": checks, "arms": {}}
