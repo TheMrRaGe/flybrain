@@ -1,0 +1,892 @@
+# Fly connectome simulation — established facts
+
+Read this before touching the code. Everything here was measured, not assumed.
+Re-deriving any of it costs hours.
+
+## Data
+
+Male CNS Connectome v1.0 (HHMI Janelia FlyEM + Google Research), **CC-BY 4.0** —
+commercial game use is permitted with attribution.
+
+Three files matter, ~1.1 GB. The other ~22 GB of the public release (`syn-points`,
+`syn-partners`, `tbar-neurotransmitters`) is per-synapse 3D coordinates: anatomy, not
+dynamics. Nothing in the simulation reads them.
+
+| file | contents |
+|---|---|
+| `connectome-weights` | 151,856,684 segment→segment rows; weight = synapse count |
+| `body-annotations` | identity: `type`, `class`, `superclass`, `somaSide`, `rootSide` |
+| `body-neurotransmitters` | `consensus_nt` → the only source of synapse **sign** |
+
+Filtering to traced, typed neurons at weight ≥ 5 gives **162,517 neurons /
+6,138,378 connections**. 58% of the brain is optic lobe.
+
+## Traps that cost real time
+
+- **Glutamate is INHIBITORY in the fly** (GluCl-α), opposite to vertebrate cortex.
+  Inverting this silently produces a dead or seizing network.
+- **Sensory neurons have `somaSide == "M"`.** All 2,635 olfactory, all 1,416
+  gustatory, 4,078 of 4,107 visual. Their somas sit in the antenna, palp and retina —
+  outside the imaged CNS volume. Laterality comes from **`rootSide`** instead.
+  Without this the creature is spatially blind: measured turn response to a stimulus
+  left vs right was 0.0000, identical to four decimals.
+- **The right hemisphere is more completely traced**: 9.7% more synaptic weight on
+  1.7% more neurons. Every left/right readout inherits that bias. Shiu et al. hit the
+  same thing and sidestepped it by only ever stimulating one side.
+- **Odours must be defined over the 53 receptor TYPES**, not random individual
+  receptors. The antennal lobe is glomerular; random receptors smear across all
+  glomeruli and the first synapse averages them away.
+- `~some_python_bool` is `-1`, not `False`. Used in a numpy mask it silently turns a
+  boolean mask into integer fancy-indexing.
+- **The whole-DN-population steering readout is sign-inverted** relative to the real
+  signal. It reports residual bias, not steering. See below.
+
+## Model parameters — Shiu et al. 2024, Nature 634:210
+
+All measured or published, none tuned by us:
+
+```
+V_rest      -52 mV      tau_m        20 ms      W_syn    0.275 mV  (their one free parameter)
+V_threshold -45 mV      tau_syn       5 ms      dt        1.0 ms   (0.1 ms in the paper)
+V_reset     -52 mV      syn_delay   1.8 ms      refractory 2.2 ms
+```
+
+**α-synapse dynamics and the 1.8 ms delay are not optional.** Delivering each spike as
+an instantaneous voltage jump is ~4× too much (the conductance decays over 5 ms against
+a 20 ms membrane constant), which forces a bogus gain fudge. With the synapse modelled
+properly, `W_syn` works at its published value and `gain` stays at 1.0.
+
+Three things the paper confirms that look like bugs:
+
+1. Basal firing is **0 Hz by design** — "inhibitory connections to an inactive neuron
+   have no effect." The network being silent at rest is correct, not broken.
+2. **Absolute firing rates are not meaningful.** Only differences between conditions
+   are. Always baseline-subtract.
+3. Their robustness check shuffles connectivity while preserving the global weight
+   distribution; only 1 of 100 shuffled networks reproduced the result.
+
+## Circuit landmarks
+
+| population | count | role |
+|---|---|---|
+| Kenyon cells | 4,064 | sparse odour code |
+| MBON | 97 | learned valence readout |
+| **PAM** | **316** | **dopamine REWARD channel** (2,595 → KC) |
+| **PPL1** | **24** | **dopamine PUNISHMENT channel** (3,029 → KC) |
+| KC→MBON | 33,496 | **the plastic synapses — where memory physically lives** |
+| Central Complex | 2,950 | heading / path integration, 138,641 internal edges |
+| Descending neurons | 1,310 | the action bus, 480 types |
+| DNa02 | 1 per side | best-characterised turning neuron |
+| DNp01 | 1 per side | Giant Fiber, escape |
+
+Axo-axonic DN→DN connections reproduce Ceballos et al. 2026 closely: 1.23% of possible
+pairs connected (paper ~1%), heterotypic 62% cholinergic (paper ~60%). **8,692
+contralateral heterotypic DN→DN connections, 40% inhibitory** — a mutual-inhibition
+winner-take-all circuit already present in the matrix.
+
+## Steering — measured, 30 trials × 1000 ms per condition
+
+Mirror-image stimuli (one antenna 1.0, the other 0.4), turn index = (R−L)/(R+L):
+
+| readout | difference | d′ | p | spikes/trial |
+|---|---|---|---|---|
+| DNa02 (1/side) | +0.467 | 1.11 | 1.6e-4 | 1 |
+| **DNa family** | **+0.221** | **4.21** | **3e-11** | **330** |
+| all 1,310 DNs | −0.011 | −1.70 | 6e-7 | 11,853 |
+
+**Use the DNa family.** DNa02 alone is right but fires ~1 spike/trial — too sparse to
+read per-tick. The whole-population readout is significant *with the wrong sign*: it
+tracks residual asymmetry, not steering. Averaging 1,310 neurons doesn't dilute the
+signal, it inverts it.
+
+Shuffle control not yet run.
+
+## Performance
+
+Event-driven propagation, verified **spike-for-spike identical** to the dense path.
+
+- 2.8 ms/step (cloud container), ~2.2 ms/step on Heath's laptop → **0.45× real time**
+- 590 of 162,517 neurons spike per ms (**0.36%**) — a dense matvec does 99× more work
+  than necessary
+- Predicted 99× speedup, got **4.1×**: event-driven fixes synaptic work, but
+  per-neuron O(N) work doesn't shrink and now dominates
+- Profiling surprises: Gaussian noise for all N cost 2.25 ms/step (35% of the step) —
+  now read from a pool; Poisson draws were sampling all 162,517 neurons to serve
+  ~4,000 receptors; `np.add.at` into a persistent buffer beats `np.bincount`, which
+  allocates 1.3 MB of float64 per call
+
+**Memory: 119 MB connectome (read-only, shareable) + 5.2 MB per creature.**
+A swarm of 100 is 639 MB total — the connectome is shared, only state duplicates.
+
+## Conditioning — NOT DEMONSTRATED, and now properly measured
+
+> **PARTLY SUPERSEDED.** Those runs used `stimulate()` (which fires a DAN 0 times
+> during an odour) and a parameter regime leaving only 33 of 4,064 Kenyon cells
+> active. See *Conditioning after both fixes* below.
+
+Earlier claims are retracted. Every conditioning number before `conditioning2.py` came
+from ONE presentation of each odour, against a measured noise floor of mean −0.108,
+sd 0.053. All of them (−0.012, −0.014, −0.059, +0.183, +0.179) sat inside it.
+
+### The protocol that actually settles it
+
+`conditioning2.py` — paired, three-armed. Discrimination index
+`d = (CS+ − CS−)/(CS+ + CS−)` measured before and after training **using the same noise
+seed**, so each seed is its own control:
+
+| arm | plasticity | punished |
+|---|---|---|
+| punish CS+ | on | CS+ |
+| punish CS− | on | CS− |
+| no plastic | off | CS+ |
+
+**With paired seeds the control arm's delta is exactly 0.0000** — the measurement is
+perfectly reproducible when no weights change. All the earlier "noise" was from
+comparing *unpaired* measurements. Use this design for anything measured from here on.
+
+**The specificity test is the reversal arm.** If learning is associative, punishing CS−
+instead of CS+ must flip the sign of the shift.
+
+### Result
+
+| arm | delta | sd |
+|---|---|---|
+| punish CS+ | −0.040 | 0.096 |
+| punish CS− | −0.025 | 0.059 |
+| no plastic | +0.000 | 0.000 |
+
+**Same sign both ways** (p=0.878 for the reversal). Plasticity produces a small
+non-specific depression that does not follow the contingency. Not distinguishable from
+control (d′=−0.59, p=0.4).
+
+### Why — a chain of four measured causes
+
+1. **Depression was ~100× too weak.** The coincidence term peaked at 0.00127: both
+   traces were normalised by their own time constants (KC ~0.024, phasic DA ~0.052),
+   multiplied together, then compressed by tanh. Fixed with `kc_trace_scale` /
+   `da_trace_scale`; one trial now depresses 4.5% of synapses by ~2%.
+2. **Still non-specific.** With disjoint input channels, **41.4% of CS+ Kenyon cells
+   also responded to CS−**. Depression hits shared cells, so punishing either odour
+   lowers both responses.
+3. **Narrowing the odours made it worse** (51.6% overlap at 5 glomeruli). The same
+   easily-excited KCs win regardless of odour — the code was being selected by
+   intrinsic excitability, not identity.
+4. **Per-KC threshold normalisation** (scale each cell's threshold by its own total
+   excitatory drive) brought overlap to **36.1%**. Real improvement, still too high.
+
+### Next
+
+Get KC overlap to ~15%. The remaining candidate is the one piece of antennal lobe
+computation not yet implemented: **divisive normalisation of PN input**, a known
+gain-control step that equalises total drive across odours. Until overlap comes down,
+no learning rule can be odour-specific, because the codes themselves are not separable.
+
+## Probe ladder — the overlap theory is refuted (`probe_ladder.py`)
+
+60 paired trials, 5-fold held-out, plasticity off. Three readouts of the SAME Kenyon
+activity, each adding one biological constraint:
+
+| rung | constraint | held-out accuracy |
+|---|---|---|
+| 1 | unconstrained linear readout over 4,064 KCs | **100.0%** |
+| 2 | restricted to the real KC→MBON wiring, weights non-negative | **100.0%** |
+| 3 | same wiring, weights may only DECREASE (what the DA rule can express) | **93.3%** |
+
+Rung 3 is a closed-form optimum, not an optimisation that might have got stuck: the
+objective is linear in the per-cell depression factor, so the best possible setting is
+at the box corners. It is a **ceiling**.
+
+    depression-only ceiling   -0.1219 -> +0.0947   (shift +0.2166)
+    measured learning shift                        -0.0400
+
+**5.4x too small AND the wrong sign.** The codes are separable, the anatomy can express
+the discrimination, and depression is a sufficient mechanism. KC overlap measured 72.2%
+here — worse than the 36.1% the theory was built on — and the ceiling held anyway.
+
+**Divisive normalisation of PN input is therefore NOT the next step.** The failure is in
+credit assignment: which synapses the dopamine signal actually reaches. The previous
+"Next" section above is superseded.
+
+## Vision delivers exactly zero (`habituation.py`, docstring)
+
+> **SUPERSEDED — FIXED.** See *FIXED: vision now works* below. Kept because the
+> diagnosis is what the fix is built on.
+
+Driving all 4,107 photoreceptors at 400 Hz:
+
+    224,794 receptor spikes  ->  0 VPN spikes  ->  0 descending spikes
+
+Not few. Zero. Mechanosensory drive at 180 Hz through the same machinery gives 10,324
+descending spikes and 2 DNp01 spikes.
+
+**Cause:** all 4,107 visual receptors are histaminergic and all 29,469 of their outgoing
+edges carry sign −1. Photoreceptor output is INHIBITORY in the fly. Against the model's
+0 Hz basal rate — which is correct and published — the visual system is a switch wired
+to nothing: there is no activity for it to suppress. **58% of the connectome is optic
+lobe and it contributes zero spikes.**
+
+Same family as the glutamate and somaSide traps, one layer further out. Cannot be fixed
+by driving harder. Vision needs a tonic baseline it can modulate DOWNWARD. Until then,
+any visual experiment is measuring nothing, and `build_creature.py` dropping the optic
+lobe costs nothing.
+
+## Escape does not habituate — it sensitises (`habituation.py`)
+
+> **SUPERSEDED — FIXED.** See *FIXED: escape habituates* below. This is the
+> no-adaptation baseline the fix is measured against.
+
+8 seeds x (20 identical mechanosensory pulses + 1 novel + 3 retest), 80 ms pulse /
+220 ms gap, response normalised per seed to its own first pulse:
+
+| population | last/first | novel/first | specific? |
+|---|---|---|---|
+| all DN (1,310) | **1.517** | 1.500 | no |
+| DNp escape family | 1.069 | 1.035 | no |
+| MBON | 1.272 | 1.197 | no |
+| Giant Fiber (DNp01) | 0.6 spikes on pulse 1 — too sparse to normalise | | |
+
+Response RISES 52% over 20 repetitions and the novel stimulus is matched, so nothing is
+stimulus-specific. Predicted before running: there is no plastic synapse in this pathway,
+no short-term synaptic depression and no spike-frequency adaptation, so residual
+excitation has nowhere to go but up. **To get habituation, add short-term synaptic
+depression** — a mechanism the model lacks entirely.
+
+The Giant Fiber is unreadable for the same reason DNa02 is: ~1 spike per presentation.
+
+## Embodied episode — starves without eating (`results/arena_run.jsonl`)
+
+300 ticks requested, `--gain 1.0`, seed 3. Died at tick 188.
+
+    events: {'died:starved': 1}      feeding events: 0      drinking events: 0
+
+Seven food sources in the arena. Energy and water fall in straight lines because nothing
+ever interrupted them. Turn command positive on 8 of 10 sampled ticks; speed never left
+0.20–0.23. Steering is real (DNa family d'=4.21) and the action bus works — **chemotaxis
+does not close the loop.**
+
+Note `flyworld.py --gain` still defaults to 0.15, a leftover from before the alpha-synapse
+fix; decision 6 says it should be 1.0.
+
+## The teaching signal, measured (`teaching_signal.py`)
+
+> **PARTLY INVALIDATED.** These numbers were taken with `stimulate()`, which cannot
+> fire a DAN during an odour at all (see *TRAP* below). The tag-overlap result
+> (cosine 0.846) stands; the dopamine ratios were measured against a punishment that
+> largely never arrived.
+
+probe_ladder.py ruled out the KC code, so the fault is credit assignment. Credit
+assignment has two inputs and BOTH are broken. 6 repeats, 600 ms presentations,
+punishment over the second half.
+
+| condition | PPL1 spikes | peak phasic DA |
+|---|---|---|
+| CS- alone | 666 | 0.2389 |
+| CS+ alone | 806 | **0.2914** |
+| CS- + punish | 881 | 0.3326 |
+| CS+ + punish | 1030 | 0.3839 |
+
+**1. The teaching signal barely carries the contingency.** Punishment is only
+**1.32x** the dopamine the odour drives on its own, and CS+ ALONE (0.291) produces
+nearly as much dopamine as CS- WITH punishment (0.333). Odour identity moves dopamine
+about as much as the reinforcement does.
+
+**2. The eligibility tag is not odour-specific.** cosine(trace | CS+, trace | CS-) =
+**0.846**; the top-200 tagged cells overlap **52.7%**.
+
+Depression is therefore applied nearly equally, to nearly the same synapses, in every
+condition. That is exactly the measured -0.040 / -0.025 same-sign result.
+
+### The obvious parameter fix does NOT work — do not retry it
+
+Shortening the dopamine baseline so it subtracts the odour-driven level, and shortening
+the KC trace so the tag reflects only the current odour:
+
+| da_baseline_ms | kc_trace_ms | DA ratio | tag cosine |
+|---|---|---|---|
+| 4000 (current) | 1200 | 1.29 | 0.848 |
+| 600 | 1200 | **1.35** | 0.848 |
+| 250 | 1200 | 1.23 | 0.848 |
+| 250 | 400 | 1.19 | 0.849 |
+| 120 | 300 | 1.06 | 0.848 |
+
+A faster baseline makes it WORSE: punishment lasts 300 ms, so a 120 ms baseline tracks
+the punishment and subtracts it away. And the tag cosine does not move at all, because
+0.848 is a property of the Kenyon code, not of the trace time constant. 600 ms is a
+marginal best and not worth chasing.
+
+**What is left is structural, not parametric:**
+
+1. **Compartment-specific dopamine.** `_da_w` is one normalised scalar per MBON over all
+   24 PPL1 cells, so every MBON PPL1 touches is depressed together. Real mushroom-body
+   learning is compartmentalised - individual PPL1 types innervate individual
+   compartments. Those types are in the data and are currently averaged away.
+2. **Drive PAM as the opposing channel.** Only PPL1 is ever driven, so everything is
+   depression and nothing can move the other way. PAM reaches 47 MBONs, PPL1 80, only
+   32 shared - that separation is the thing that lets reward and punishment teach
+   opposite lessons, and it is unused.
+3. **Per-odour dopamine baseline** as a DIAGNOSTIC only: subtract each odour's own
+   unpunished dopamine response. Biologically dubious, but it settles whether the
+   residual differential is large enough to be worth chasing at all.
+
+### Trap recorded: how NOT to deliver punishment
+
+`stimulate()` applies tonic current through `_ext`. Setting `drive_hz` on PPL1 does
+NOTHING - `drive_hz` only reaches neurons in `SENSORY_CLASSES`, and DANs are not
+sensory. A first version of `teaching_signal.py` did that and measured 829 vs 828 PPL1
+spikes, appearing to prove punishment had no effect at all.
+
+## FIXED: vision now works (`flysim.enable_vision()` / `see()`)
+
+The optic lobe was dead because photoreceptor output is inhibitory and the network
+rests at 0 Hz - an inhibitory input with nothing to inhibit. Both halves of the real
+biology were missing:
+
+1. Fly photoreceptors depolarise in the DARK and release histamine tonically; LIGHT
+   REDUCES release and disinhibits the lamina. So they fire at a tonic baseline
+   (`photoreceptor_hz`, 90 Hz) and `see(brightness)` drives them DOWN. The sign of the
+   whole channel inverts.
+2. The cells being inhibited need their own depolarising drive. Each of the 14,311
+   photoreceptor targets gets a tonic current sized so that, against the inhibition it
+   receives at baseline, it rests at `lamina_hold_frac` (0.72) of threshold.
+
+The hold is exact, not tuned: g_ss = W*r*tau_syn and v settles at g + ext, so
+ext = v_hold - g_ss.
+
+**Measured, 300 ms per condition:**
+
+| stimulus | visual | VPN | optic lobe | descending |
+|---|---|---|---|---|
+| before, 400 Hz drive | 224,794 | **0** | 0 | **0** |
+| dark (baseline) | 86,937 | 1,860 | 113,242 | 0 |
+| half-lit | 48,774 | 3,116 | 92,457 | 20 |
+| full light | 0 | **4,540** | 66,216 | **777** |
+
+Light now drives the brain monotonically and reaches the descending bus. 58% of the
+connectome went from contributing zero spikes to being the largest live structure in
+the model.
+
+## FIXED: escape habituates (`flysim.enable_std()`)
+
+The model had NO adaptation of any kind, so repeated stimulation could only accumulate.
+Tsodyks-Markram short-term depression added: one resource variable per presynaptic
+neuron, a spike consumes `std_u` of what is left, recovery `std_tau_rec_ms`.
+
+**STD MUST BE GLOBAL.** Applied to sensory afferents only it made habituation WORSE -
+all-DN response went from 1.52x to **3.40x** over 20 pulses. It lowers the first pulse
+without touching the recurrent central loops, and the accumulation is central.
+
+`std_u` was measured, not chosen (all-DN, 20 pulses, first-pulse spikes | last/first |
+novel/first):
+
+| U | first | last/first | novel/first | |
+|---|---|---|---|---|
+| none | 4913 | 2.267 | 2.251 | sensitises, non-specific |
+| 0.03 | 2345 | 1.383 | 0.626 | still rising |
+| **0.08** | **1139** | **0.376** | **1.023** | habituates, novel fully recovers |
+| 0.15 | 756 | 0.219 | 0.854 | stronger, costs responsiveness |
+
+0.08 is the cheapest setting where a novel stimulus returns to naive, which is what
+makes the decrement habituation rather than fatigue.
+
+**Confirmed, 8 seeds, U=0.08:**
+
+| population | first | last/first | novel/first | retest | |
+|---|---|---|---|---|---|
+| all DN | 1,248 | **0.426** | 0.742 | 0.578 | SPECIFIC |
+| DNp escape | 132 | **0.425** | 0.724 | 0.509 | SPECIFIC |
+
+Decrement, stimulus specificity and partial dishabituation. Previously 1.517 and
+non-specific. This is the first learning-like behaviour the model has produced.
+
+## TRAP: `stimulate()` cannot fire a DAN during an odour
+
+`stimulate()` converts hz to tonic current as `14.0 * min(1, hz/200)`, so **12.6 mV is
+the strongest punishment it can ever deliver.** Measured on PPL105 over 800 ms:
+
+| tonic drive | spikes, no odour | spikes, with CS+ |
+|---|---|---|
+| **12.6 mV (stimulate's ceiling)** | 83 | **0** |
+| 20 mV | 132 | 2 |
+| 45 mV | 228 | 91 |
+| 70 mV | 266 | 218 |
+
+Odour presentation drives enough inhibition onto the PPL1 cells to silence them
+completely at the maximum stimulate() can deliver - which is exactly the moment
+punishment is meant to arrive. **Every conditioning protocol built on `stimulate()`
+has been pairing the odour with no dopamine at all.** `stimulate_type(..., mv=)` takes
+an explicit drive and bypasses the ceiling.
+
+The symptom that exposed it: two arms punishing OPPOSITE odours returned bit-identical
+deltas (-0.0073, sd 0.0879, p=1.0000). Identical results from different conditions
+means the condition was never applied.
+
+## Individual limb and wing control (`motormap.py`)
+
+The gait in `fly3d.py` and `desktop_fly.py` is a sine wave with fixed tripod phases -
+animation. The real motor pool was never read, and it is right there:
+
+`vnc_motor` holds **699 motor neurons**, labelled BY MUSCLE, with `somaNeuromere`
+giving the segment and `exitNerve` confirming it:
+
+    T1  173 MNs  prothoracic   front legs  (ProLN)
+    T2  175 MNs  mesothoracic  mid legs + wings (MesoLN)
+    T3  152 MNs  metathoracic  hind legs   (MetaLN)
+    A1-A10       abdominal, not legs
+
+Crossed with soma side that is **six legs, four joints each**, as named antagonist
+pairs - and they line up one-for-one with the DesktopFly leg chain:
+
+| joint | pulls one way | pulls the other |
+|---|---|---|
+| coxa (swing) | Sternal anterior rotator, Tergopleural/Pleural promotor | Sternal posterior rotator, Pleural remotor/abductor |
+| trochanter (lift) | Tr flexor, Acc. tr flexor | Tr extensor, Sternotrochanter, Tergotr. |
+| femur-tibia | Ti flexor, Acc. ti flexor | Ti extensor |
+| tarsus | ltm, ltm1-tibia, ltm2-femur | Ta depressor |
+
+Wings, per side: **5 downstroke (DLMn), 7 upstroke (DVMn), 16 steering** (b1-b3, hg,
+iii, ps1, tp, MNwm).
+
+A joint is read as the BALANCE of its antagonists, `(flex-ext)/(flex+ext)`, bounded in
+[-1,1] - a difference normalised by the total, so a global gain change cannot
+masquerade as a command. Same discipline as the DNa steering readout.
+
+**Limitation, measured.** Driving mechanosensory at 180 Hz for 400 ms produced only
+**781 motor spikes across 699 neurons** (~2.8 Hz each), and every joint balance
+saturated at +-1.000 because one antagonist fired and the other did not. The map is
+correct; the signal is too sparse to read per tick. Same problem as DNa02 and the Giant
+Fiber, and it needs the same answer - integrate over a longer window, or drive harder.
+Do not wire this to the legs and claim the connectome is walking until that is fixed.
+
+## Endless running and respawn
+
+- `fly3d.py --seconds 0` runs until Ctrl+C and writes what it has.
+- `fly3d.py --respawn-every N` puts the body back on the floor every N seconds. A
+  respawn resets the BODY, not the brain - traces, weights and adaptation survive,
+  which is the point of having it.
+- `web/flyroom.html` loops the recorded episode seamlessly with a lap counter and a
+  running clock, plus Respawn and a Loop toggle. The episode is recorded, so an endless
+  run is a loop, not new simulation - the page says so.
+
+## Conditioning after both fixes (`conditioning3.py`)
+
+Compartment-specific dopamine (PPL105 only, 25 MBONs read out), punishment at 70 mV,
+and a LIVE mushroom body (kc_thresh 1.5, apl 200, noise 0.15). 8 paired seeds, 12
+trials, learn_rate 0.02.
+
+| arm | delta | weights after training |
+|---|---|---|
+| punish CS+ | **-0.1011** (sd 0.084) | 82.5% |
+| punish CS- | **-0.0169** (sd 0.131) | 83.1% |
+| no plasticity | +0.0000 (sd 0.0000) | 100.0% |
+
+    vs control:  d' = -1.70   p = 0.0084     (was d' = -0.59, p = 0.4)
+    reversal:    p = 0.1719   sign did NOT flip
+
+**Real progress, still not associative.** The two arms are no longer identical - they
+differ 6-fold - and the trained arm is now significantly different from control where
+before it was not. But punishing CS- gives -0.017, near zero rather than positive, so
+the shift does not reverse with the contingency.
+
+**Why, and it follows from the earlier measurements.** The eligibility tags for the two
+odours have cosine 0.846, so depressing "CS- preferring" cells hits CS+ cells too and
+both responses fall together. probe_ladder's rung-3 optimum reached +0.217 by depressing
+cells *where CS+ exceeds CS-* - a COMPARISON. A depression-only rule driven by
+`trace x dopamine` never computes a difference; it only ever subtracts. With overlapping
+tags and no opposing channel, the arms cannot separate in sign no matter how clean the
+teaching signal is.
+
+**The n=8 reversal test is also underpowered** - effect 0.084 against pooled sd ~0.11 is
+d=0.76, roughly 25% power. Do not read p=0.17 as evidence of no difference.
+
+### Next, and it is now specific
+
+An opposing channel is needed so the unpunished odour teaches something too. The obvious
+move - drive PAM on the unpunished odour and read the same MBONs - does NOT work here,
+and the anatomy says why: **PAM10 shares only 4 of PPL105's 25 MBONs** (PAM08, PAM14,
+PAM01 share none). Reward and punishment deliberately teach different compartments.
+
+So the readout has to become differential across compartments, the way the fly actually
+computes valence: punish CS+ through PPL105, reward CS- through PAM10, and read the
+BALANCE between the two compartments rather than either alone.
+
+## Why an embodied fly walks in circles — measured
+
+The desktop and 3D builds both circled on first run. Two causes, both measured on the
+DNa family, both now fixed in `desktop_fly.py` and `fly3d.py`.
+
+**1. Receptors split by array index are not a left/right split.** Sensory somas sit
+outside the imaged volume so `somaSide` is "M"; laterality is in `rootSide`, which is
+what `side` carries. Splitting `pop["mechano"]` down the middle of the array gives
+sets that are 68% / 71% impure. Split on `side` (828 L / 877 R).
+
+**2. Structural bias is 16x the actual side signal.** `turn_raw = (R-L)/(R+L)*3` on
+the DNa family:
+
+| stimulus | turn_raw |
+|---|---|
+| symmetric | **−1.304** |
+| left antenna only | −1.263 |
+| right antenna only | −1.185 |
+
+The bias is −1.3 and constant; the whole left-vs-right signal is **0.078**. The command
+clips to −1.0 every tick and the fly turns at maximum rate forever. This is the same
+trap decision 9 records for the hemispheres, arriving at the readout instead of the
+weights.
+
+**The fix is flyworld.py's `calibrate()`,** ported: measure the R-share under a
+SYMMETRIC stimulus at several drive levels and interpolate. Whatever a symmetric
+stimulus produces carries no information about the world, at any level, and that is the
+zero point. After calibration, measured: **evidence is exactly 0.000 with no stimulus**,
+and a disturbance on the left vs the right separates by ~0.48.
+
+**Calibration alone is not enough, and this is the part worth remembering.** Even
+perfectly zeroed, integrating a continuous turn signal produces circles, because a fly
+does not steer continuously. It holds a course and turns in discrete body saccades —
+about one a second walking, far faster in flight — and it stops and grooms constantly.
+So the calibrated asymmetry is treated as **evidence** that biases a saccade generator,
+with a walk / stop / groom / fly state machine over it.
+
+**That generator and state machine are IMPOSED, not derived.** The connectome contains
+the circuitry; these scripts do not read it out. Say so when showing the output. What
+is genuinely the connectome's: turn evidence (calibrated DNa asymmetry), walking drive
+(total descending rate), and escape takeoff (DNp01, the Giant Fiber, doing its real
+job). Wingbeat, banking and leg placement are animation.
+
+Resulting time budget over 60 s, seed 11: walk 41%, flight 29%, land 14%, groom 10%,
+stop 6%, takeoff 1%.
+
+## Visual report and desktop build
+
+- `web/flybench.html` — published artifact, all four experiments plus the standing
+  results, with the recorded episode replayed on a 3D body.
+- `scripts/desktop_fly.py` — Windows desktop fly (Tk, keyed-out background). Brain on
+  a worker thread at ~2.2 commands/s, UI at 60 fps, cursor drives mechanosensation.
+- `scripts/fly3d.py` — a room (64 x 44 x 30) with five landable surfaces; walking,
+  takeoff, flight and landing. Writes a frame-by-frame JSONL for the viewer.
+- `web/flyroom.html` — published viewer for that episode, chase and orbit cameras.
+- Body geometry in both is ported from DesktopFly-Linux (MIT, (c) 2026 Denis Shiryaev
+  and contributors): segment dimensions, the six-leg table, tripod gait phases.
+  Independent confirmation of our DN choices — that project maps DNa02/DNg13 to
+  steering and DNp01/DNp10 to jump, and Fly64 (same MaleCNS data, drives Mario 64)
+  maps the same cells.
+
+## Files
+
+- `build_creature.py` — raw feather → `.npz` (`--whole` for all 162,517)
+- `mirror_connectome.py` — bilateral symmetry as a second measurement
+- `flysim.py` — the LIF engine
+- `flyworld.py` — survival sandbox
+- `steering_protocol.py` — Shiu-style repeated-trial protocol
+- `conditioning.py` — olfactory conditioning: CS+ paired with PPL1, CS- unpaired
+- `conditioning2.py` / `conditioning3.py` — paired-seed reversal design; compartment-specific dopamine
+- `conditioning4.py` — differential readout across compartments (PPL105 vs PAM08); `--swap`, `--odours`
+- `odour_design.py` — per-glomerulus KC footprints → drive-matched, non-overlapping odour pair
+- `kc_sparsity.py` — kc_thresh × apl_scale sweep: sparsity, overlap vs chance, single-glomerulus probe
+- `al_selectivity.py` — glomerular identity at the PN level under LN sign variants (decision 13)
+
+## Mirroring
+
+A real fly is symmetric; this specimen's reconstruction is not. Every connection
+reduces to (pre type, post type, crossing?), which a symmetric animal shows twice —
+once from each side. Taking the better-resolved of the two brought R/L from **1.0968
+to 1.0001** and recovered 4.7M connections. Of 1,066,731 canonical connections,
+**511,340 were seen on only one side**; where both were seen they disagree by 33.6%
+on average, which is a direct read on tracing noise.
+
+Kenyon cells are deliberately excluded — their wiring is random per animal, so the
+left mushroom body is not a measurement of the right one.
+
+## Conditioning read out as a difference between compartments (`conditioning4.py`)
+
+conditioning3's shift did not reverse with the contingency, and the reason was already
+measured: a depression-only rule with overlapping tags only ever subtracts. The fly does
+not compute valence inside one compartment. Punishment (PPL1) depresses Kenyon input to
+APPROACH-driving MBONs, reward (PAM) depresses Kenyon input to AVOIDANCE-driving MBONs,
+and behaviour is the balance. So the readout became `D = d_A - d_P`: the discrimination
+index over the PPL105 compartment minus the same over the PAM08 compartment.
+
+PAM08 chosen from the anatomy: the largest PAM type (50 cells -> 20 MBONs), **zero**
+MBONs shared with PPL105, and its targets are MBON01/04/05/09/21/27/29 - the
+gamma4/gamma5/beta'2 avoidance family - while PPL105's are the gamma1pedc/alpha approach
+family. That is the real valence axis. Every arm drives one DAN type on each odour, so
+the amount of dopamine is identical across arms.
+
+8 paired seeds, 12 trials, 70 mV DAN drive, alphabetical odours (types [0:5] vs [5:10]):
+
+| arm | dD | d_A | d_P |
+|---|---|---|---|
+| punish CS+ / reward CS- | **-0.665** (sd 0.127) | -0.024 | +0.640 |
+| punish CS- / reward CS+ | **-0.218** (sd 0.202) | +0.091 | +0.309 |
+| no plasticity | +0.000 | 0 | 0 |
+| punish only | -0.215 | -0.101 | +0.114 |
+| reward only | -0.527 | +0.096 | +0.623 |
+
+    reversal:  d' = -2.65   MWU p = 0.0002   paired Wilcoxon p = 0.0078
+    sign flipped: NO
+
+Three things. The arms are now strongly separable (conditioning3: d'=0.76, p=0.17).
+punish-only reproduces conditioning3's d_A to four decimals (-0.1011), so the pipeline is
+consistent. And the contingency-following component is about **+-0.22**, riding on a
+**-0.44 shift that ignores the contingency** - d_P rises in every arm, including
+punish-only where PAM08 is never driven.
+
+**The -0.44 is odour identity, measured two ways.** Swapping which glomeruli are CS+
+mirrors the result exactly (+0.185 / +0.684); swapping presentation order changes
+nothing (-0.684 / -0.185). Cause: `ORN_DA1` has 204 receptors - the cVA pheromone
+glomerulus, enormous in a male - so odour X drove 43% more Kenyon activity and **744 of
+Y's 842 cells were also X cells (88%)**. Y was nearly a subset of X. Depression paired
+with EITHER odour removed more of Y's response than X's.
+
+By the field's own standard (reciprocal odour groups averaged, Tully & Quinn 1985) this
+is a learning index of ~0.22 at p=0.0002. By this project's stricter standard - the
+sign must flip - it is not, and the reason it cannot is the next section.
+
+## The Kenyon code was never sparse, and the antennal lobe was broadcasting
+
+Designing a drive-matched odour pair (`odour_design.py`) exposed the real problem.
+**Every single glomerulus, alone, fired 600-790 Kenyon cells (15-19% of 4,064)** -
+more cells than a glomerulus is even wired to (median 5 of 53 glomeruli per KC, so
+~10%). Two designed, disjoint 5-glomerulus odours still shared 852 of ~1,140 cells
+(Jaccard 0.60; independent 27% sets give 0.16). The code was a fixed ~700-cell core
+plus a fringe, whatever the odour. Three causes, in the order they were found:
+
+**1. The APL surrogate never engaged - a bug.** It compared the fraction of KCs spiking
+PER MILLISECOND (0.08-0.8%) against `kc_target_sparsity=0.05`, a per-odour number, and
+inhibited only above it. Results were bit-identical at apl 200 / 600 / 1500 in every
+regime. Every `apl` argument in every conditioning script has been a no-op, and every
+sparsity result before today was threshold-only. Threshold alone gets sparsity but not
+selectivity: at 5.6% active, Jaccard was still 0.378 against 0.026 for chance, and one
+glomerulus fired 113 of an odour's 228 cells.
+
+**2. KC->KC recurrence is NOT the cause - refuted.** KC->KC excitatory weight is 55% of
+the PN input to KCs and 24% of KCs get more excitation from other KCs than from PNs, so
+it was the obvious suspect. Ablating it (`kc_kc_scale=0`) changed nothing. The knob
+stays at 1.0. (The threshold normalisation of decision 11 was also dividing by this
+weight; it now uses PN input only.)
+
+**3. The antennal lobe local neurons lLN1 and lLN2 are sign-flipped - decision 13.**
+Stimulating ONE receptor type (ORN_DM6) drove PNs in **45 of 53 glomeruli** above
+5 Hz, twelve at saturation; only **7%** of uniglomerular PN spikes were in DM6. 96% of
+the excitatory drive onto an unstimulated glomerulus's PNs came from `ALLN`, lLN1_bc
+alone 45%. The transmitter table calls lLN1 acetylcholine (42/59) and splits lLN2 44
+GABA / 40 acetylcholine. A cell type is transmitter-homogeneous; a 50/50 split inside
+one is the classifier not knowing. Both are reported GABAergic panglomerular LNs - the
+lateral inhibition that gives the antennal lobe its gain control. With 151 cells
+re-signed (`Params.sign_override`, now the default):
+
+| | glomeruli >5 Hz | own share | KC cells shared |
+|---|---|---|---|
+| as-is | 45-47 / 53 | 0.07-0.25 | 138 (Jaccard 0.384, 12x chance) |
+| **lLN1+lLN2 inhibitory** | **1 / 53 single, 6 / 53 odour** | **0.99-1.00** | **0** |
+
+Same family as the glutamate and histamine traps: one transmitter label, one layer
+further in. This is the root of the 0.846 tag cosine, the 41-72% overlaps, and every
+non-specific conditioning result.
+
+**4. The real APL is in the connectome and was 7x too strong - decision 12 rewritten.**
+Decision 2 said APL did not survive the weight>=5 threshold. For this build it does
+(type `APL`, GABA), driven by PNs and KCs, and with the antennal lobe fixed it was
+delivering **-7.2M onto the KCs against +1.6M of PN excitation** - broad odours
+suppressed themselves (8 glomeruli fired FEWER cells than 1). It is non-spiking and
+graded in life; the LIF saturates it at 250 Hz. `apl_scale` scales its output; the
+surrogate (`apl_w`) is off.
+
+**The regime, measured (`kc_sparsity.py`, 8-glomerulus designed pair):**
+
+| kc_thresh | apl_scale | % KC | Jaccard | chance | 1-glomerulus cells |
+|---|---|---|---|---|---|
+| 1.0 | 0.10 | 14.0 | 0.055 | 0.075 | 123 |
+| **1.5** | **0.10** | **4.9** | **0.015** | **0.025** | **39 (odour: 188)** |
+| 1.5 | 0.20 | 3.0 | 0.013 | 0.015 | 30 |
+| 2.0 | 0.10 | 1.6 | 0.008 | 0.008 | 15 |
+
+5% active, the two odours BELOW chance overlap (actively decorrelated), drive balanced
+to 1%, and a lone glomerulus fires a fifth of what the odour does - coincidence
+detection. These are now the engine defaults.
+
+**Everything olfactory measured before 10 Sept 2026 was measured on the broadcasting
+antennal lobe.** Steering (smell_bilateral), the probe ladder, teaching_signal and all
+conditioning runs. The steering d'=4.21 and the ceiling arguments still hold as
+measurements of that network; they need re-taking on this one.
+
+## ASSOCIATIVE — conditioning on the fixed circuit (`conditioning4.py`, `results/conditioning4b*.json`)
+
+Same protocol, same readout, same learning rule as this morning's run. The only
+changes are upstream: the designed 8-glomerulus odour pair (`results/odours3.json`),
+lLN1/lLN2 inhibitory, the real APL at `apl_scale 0.1`, kc_thresh 1.5. 8 paired seeds,
+12 trials, 70 mV DAN drive, learn_rate 0.02.
+
+| arm | dD | d_A | d_P |
+|---|---|---|---|
+| punish CS+ / reward CS- | **-0.783** (sd 0.333) | +0.174 | +0.957 |
+| punish CS- / reward CS+ | **+0.843** (sd 0.149) | +0.074 | -0.768 |
+| no plasticity | +0.000 (sd 0.000) | 0 | 0 |
+| punish only | -0.088 (sd 0.264) | -0.024 | +0.064 |
+| reward only | -0.465 (sd 0.336) | +0.491 | +0.956 |
+
+    reversal:  d' = -6.29   MWU p = 0.0002   paired Wilcoxon p = 0.0078
+    sign flipped: YES   8 of 8 seeds opposite in the two arms
+
+Counterbalanced with the odours swapped: both **-0.847**, reversed **+0.687**,
+d' = -7.15, again 8/8. The odour-identity bias is now +0.03 / -0.08 (was -0.44). The
+counterbalanced learning index is **~0.79**; a real fly scores 0.3-0.8 after one
+session.
+
+Every arm receives the same dopamine - one DAN type per odour - so "dopamine depresses
+everything" is controlled for, and the plasticity-off arm is exactly 0.0000, so nothing
+but the weights moved. The shift follows the contingency and reverses with it.
+
+What changed between "specific but not reversed" this morning and this was NOT the
+learning rule, the compartments or the readout - all three were already in place.
+It was the Kenyon code: two odours that shared 55% of their cells now share none.
+probe_ladder's rung-3 ceiling argument was right that depression is sufficient; what
+it could not see was that the tags it was given were 85% the same tag.
+
+**The reward channel carries most of it.** reward-only through PAM08 (gamma4/5, beta'2)
+moves D by -0.465; punish-only through PPL105 (gamma1pedc) by -0.088 - and d_P reaches
++0.96, meaning the avoidance MBONs' response to the rewarded odour is nearly abolished
+at the 20% weight floor. Per-MBON dopamine is matched across the two (per-cell
+normalisation in `learn()`, 2 cells vs 50 at the same 173 Hz), so the asymmetry is in
+the compartments, not the teaching signal. Naive d_A is -0.38: CS- drives the PPL105
+MBONs twice as hard as CS+ at rest, so there is less CS+ response there to depress.
+Not yet diagnosed beyond that.
+
+Cross-compartment effects are real and large: reward-only, which never touches PPL105,
+moves d_A by +0.49. The MBONs feed back on one another (gamma1pedc>alpha/beta is the
+canonical feedforward-inhibition MBON); the two compartments are not independent
+readouts, and D should be read as the network's valence, not a sum of two parts.
+
+### Next
+
+1. **Close the loop.** Train a brain, then read the DNa steering asymmetry to CS+ vs
+   CS- (`smell_bilateral`). If avoidance of the punished odour shows up on the action
+   bus, that is a learned behaviour derived from the connectome end to end - and it is
+   what `flyworld.py` needs to stop starving.
+2. **Re-take the olfactory baselines on the fixed antennal lobe**: steering d',
+   probe_ladder, teaching_signal. All were measured on a PN code with no glomerular
+   identity.
+3. Why is PPL105 punishment 5x weaker than PAM08 reward? Decompose the PPL105 MBONs'
+   odour drive by presynaptic source; the compartment may be dominated by non-KC input.
+
+## Qualification: the "compartments" are DAN target sets, and the cells that fire are strays
+
+Investigating why PPL105 punishment is 5x weaker than PAM08 reward found something
+that bounds the associative result above. `enable_compartments()` defines a DAN
+type's compartment as every MBON it makes a direct synapse onto, with dopamine weight
+normalised to its strongest target. That correctly finds the principal MBON -
+PAM08 -> MBON05 (2,421 synapses, gamma4), PPL105 -> MBON13/MBON18 (680/510) - but the
+readout then includes every stray target too, and **the strays are the cells that
+fire**:
+
+| compartment | principal MBONs (w >= 0.2) | spikes / 800 ms | stray carrying the readout | its w | spikes |
+|---|---|---|---|---|---|
+| PPL105 | MBON13, MBON18, MBON23 | **0-4** | MBON11 (12 synapses) | 0.018 | 34 |
+| PAM08 | MBON05, MBON21 | **0-4** | MBON09 (115 synapses) | 0.026 | 40-57 |
+
+So the differential readout that reversed was MBON11 (gamma1pedc) against MBON09
+(gamma3beta'1), each receiving ~2% of its DAN type's peak dopamine. At learn_rate 0.02
+compounding over 800 steps x 12 trials, 2% is still enough to drive their KC synapses
+to the floor - which also says the learning rate is far too high for dopamine weight
+to mean anything. The result stands as a phenomenon: two opposing DAN channels onto
+two different MBON sets give a readout that follows the contingency and reverses.
+It does NOT show compartment-specific learning in the anatomical sense; the labels
+PPL105 / PAM08 should be read as "DAN target set", not "gamma1pedc compartment".
+
+**The principal MBONs are silent for four different measured reasons** (CS+, seed
+1000, apl_scale 0.1; E and I are spikes x weight over 800 ms):
+
+| MBON | mean v / thr | E | I | what silences it |
+|---|---|---|---|---|
+| MBON13 (alpha'2) | 2.9-5.0 / 7.0 | 658-1291 | -85 | nothing - just under threshold, KC drive too weak |
+| MBON18 (alpha2sc) | -7.0 / 7.0 | 943 | **-7164** | LHCENT1/2/3/9, GABA, driven straight from PNs (9,174 from ALPN) |
+| MBON05 (gamma4>gamma1gamma2) | -3.9 to +0.8 / 7.0 | 2908-3749 | -3597 | **APL -3250** even at apl_scale 0.1; MBON09, MBON11 |
+| MBON21 (gamma4gamma5) | -6.9 / 7.0 | 642-866 | -5769 | **MBON09 -5517** (glutamate, inhibitory) |
+
+Every one of these has baseline firing and a robust odour response in the animal.
+This is the optic-lobe problem in the output layer: the network rests at 0 Hz by
+design, so a cell whose real inhibition is balanced by tonic excitation the model
+does not have is simply off, and the winner-take-all among MBONs is decided by
+whichever cell happens to be net-excited (MBON09 at E/I 2.7-5.6, MBON11-R at 2.4).
+None of this is a sign error - LHCENT are GABAergic as labelled and MBON09 really is
+glutamatergic - it is the missing tonic drive.
+
+## Learned steering — NOT DEMONSTRATED at the action bus (`learned_steering.py`)
+
+Train exactly as conditioning4, then read the DNa family under a lateralised odour
+(near antenna 1.0, far 0.4): approach index `A(o) = T(o right) - T(o left)`, valence
+`V = A(CS+) - A(CS-)`, paired seeds pre/post. Structural left/right bias cancels twice.
+8 seeds, 12 trials, 423 DNa spikes per presentation.
+
+| arm | DNa dV | MBON dD (same run) |
+|---|---|---|
+| punish CS+ / reward CS- | -0.039 (sd 0.159) | -0.767 |
+| punish CS- / reward CS+ | -0.049 (sd 0.179) | +0.871 |
+| no plasticity | +0.000 | +0.000 |
+
+    reversal: MWU p = 0.96   d' = 0.06   opposite-sign seeds 4/8
+
+The synapses learned in both directions; the steering bus did not move. Both arms show
+the same small negative shift - a non-specific effect of depressing ~4% of KC->MBON
+weight - and nothing that follows the contingency. Given the section above this is
+the expected outcome: the learned change lives in MBON11 and MBON09, while the MBONs
+with the real downstream footprint are silent and take no part.
+
+### Next, in order
+
+1. **Give the MBONs their tonic drive.** The output-layer analogue of
+   `lamina_hold_frac`: a per-MBON tonic current sized so each cell rests at a measured
+   fraction of threshold against its baseline inhibition. Measure principal-MBON odour
+   responses before and after; the target is MBON05/13/18/21 responding, not just the
+   strays.
+2. **Restrict compartments to core members** (dopamine weight >= 0.2 of the type's
+   peak) for both teaching and readout.
+3. **Bring `learn_rate` down** until 2% dopamine weight no longer saturates; then
+   compartment specificity can be tested rather than assumed.
+4. Re-run conditioning4, then learned_steering. If the DNa readout still does not
+   follow the contingency with the principal MBONs live, the next suspect is the
+   MBON -> DN pathway itself, which has never been characterised here.
+
+## Cross-reference against the literature (10 Sept 2026)
+
+Do this periodically. Verdicts on what is new, checked against published work.
+
+**NEW - the lLN1/lLN2 transmitter labels fail a dynamical test.** Eckstein et al. 2024
+(Cell, the transmitter classifier) already flagged the population: the ALl1/ALv2
+hemilineages "seem to break Dale's law and Lacin's law, with similar morphology types
+predicted to express different transmitters", and "18-27% of antennal lobe local
+neurons may be cholinergic, suggesting that lateral excitation is a more prominent
+feature of antennal lobe processing than previously thought" - with no functional
+validation. MaleCNS v1.0's paper was published 3 Sept 2026 with the same classifier
+family (funkelab/synister_malecns; no accuracy figures published for it). Nobody has
+published the consequence measured here: taken at face value, one glomerulus drives 45
+of 53 to saturation (own share 0.07), which contradicts glomerulus-specific PN
+responses and inhibition-dominated lateral interaction (Olsen & Wilson 2008; Bhandawat
+et al. 2007 - CHECK these citations before quoting). Re-signing 151 cells restores
+glomerular identity (own share 1.00). Worth a note to the FlyEM team now, and a short
+methods note.
+
+**NEW BUT NOT YET CLAIMABLE - associative conditioning in a whole-CNS LIF with the
+measured DAN->MBON wiring.** Shiu et al. 2024 do not simulate olfaction, the mushroom
+body or plasticity at all. Published MB learning models are mushroom-body-only
+(Bennett et al. 2021; Springer & Nawrot 2021; Huang et al. 2024 Nature,
+connectome-constrained MB model with voltage imaging). One FlyWire hobby repository
+(lixiang1076/fly-brain) has KC->MBON dopamine learning with no controls, no reversal
+test and no sparsity handling. Ours passes the reversal test with paired-seed controls
+- but through stray MBONs (section above). Claimable once the principal MBONs are live
+and it still reverses.
+
+**INSTANCES OF A KNOWN LIMITATION - methods notes.** Shiu et al. state that "circuits
+in which there is extensive basal inhibition, not captured by the model because of the
+zero basal firing rate, may be poorly simulated." The photoreceptor-histamine result
+(optic lobe delivers zero) and the silent principal MBONs are concrete instances; the
+`lamina_hold_frac` construction is a practical fix others could reuse. The real APL
+being 7x too strong as a spiking LIF cell (it is non-spiking in life) is a modelling
+caveat not found elsewhere. KC->KC ablation having no effect is a small negative
+result. DN->DN axo-axonic statistics matching Ceballos et al. 2026 is a replication.
+
+Sources: Eckstein et al. 2024 https://pmc.ncbi.nlm.nih.gov/articles/PMC11106717/ ;
+Shiu et al. 2024 https://pmc.ncbi.nlm.nih.gov/articles/PMC11446845/ ;
+Schlegel et al. 2021 https://elifesciences.org/articles/66018 ;
+MaleCNS https://male-cns.janelia.org/ ; https://github.com/funkelab/synister_malecns ;
+Huang et al. 2024 https://www.nature.com/articles/s41586-024-07819-w ;
+Li et al. 2020 MB connectome https://elifesciences.org/articles/62576

@@ -1,0 +1,23 @@
+
+== as-is: 0 cells re-signed ==
+stimulus    glom>5Hz own share  own Hz  other Hz | KC act   %KC  KC spk
+DM6 alone      45/53      0.07     250     110.0 |    193   4.7    1862
+CS+            47/53      0.25     219     120.5 |    251   6.2    2564
+CS-            47/53      0.14     234     120.2 |    246   6.1    2639
+KC overlap CS+/CS-: 138 shared, jaccard 0.384 (independent sets: 0.032, ratio 12.2x)   DM6-alone cells also in CS+: 160/193   (9s)
+
+== lLN1+lLN2 inhibitory: 151 cells re-signed ==
+stimulus    glom>5Hz own share  own Hz  other Hz | KC act   %KC  KC spk
+DM6 alone       1/53      1.00     250       0.0 |     13   0.3      81
+CS+             6/53      0.99     215       0.4 |     63   1.6     483
+CS-             6/53      0.96     229       0.3 |     23   0.6     185
+KC overlap CS+/CS-: 0 shared, jaccard 0.000 (independent sets: 0.005, ratio 0.0x)   DM6-alone cells also in CS+: 3/13   (7s)
+
+== all LN inhibitory: 327 cells re-signed ==
+stimulus    glom>5Hz own share  own Hz  other Hz | KC act   %KC  KC spk
+DM6 alone       1/53      1.00     250       0.0 |     13   0.3      81
+CS+             6/53      0.99     215       0.4 |     49   1.2     381
+CS-             6/53      0.97     225       0.2 |     18   0.4     173
+KC overlap CS+/CS-: 0 shared, jaccard 0.000 (independent sets: 0.004, ratio 0.0x)   DM6-alone cells also in CS+: 2/13   (8s)
+
+wrote ../results/al_selectivity.json

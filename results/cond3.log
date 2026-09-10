@@ -1,0 +1,20 @@
+compartment-specific conditioning: teaching through PPL105 only
+8 paired noise seeds, 12 training trials
+
+  punish CS+     d_pre +0.1824   d_post +0.0813   delta -0.1011+-0.0841   weights 82.5%
+  punish CS-     d_pre +0.1824   d_post +0.1655   delta -0.0169+-0.1308   weights 83.1%
+  no plasticity  d_pre +0.1824   d_post +0.1824   delta +0.0000+-0.0000   weights 100.0%
+
+  readout: 25 MBONs in compartment PPL105
+
+  punish CS+ delta  -0.1011  (sd 0.0841)
+  punish CS- delta  -0.0169  (sd 0.1308)
+  control    delta  +0.0000  (sd 0.0000)
+
+  THE SPECIFICITY TEST — reversing which odour is punished must flip the sign
+  sign flipped: NO    p(reversal) = 0.1719
+  vs control:   d' = -1.70   p = 0.0084
+
+  NOT DEMONSTRATED — the two arms are indistinguishable
+
+wrote ../results/conditioning3.json

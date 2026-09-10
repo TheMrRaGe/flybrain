@@ -1,0 +1,12 @@
+ORN_VM7d      36        117          17
+ORN_VM7v      25         70          10
+
+footprints in 72s
+
+CS+ = ['ORN_DL3', 'ORN_DC2', 'ORN_DC3', 'ORN_VC4', 'ORN_VM1']
+CS- = ['ORN_VM5d', 'ORN_DM5', 'ORN_VL1', 'ORN_VA7l', 'ORN_VM4']
+predicted: 35 vs 48 active KCs, 0 shared, jaccard 0.000, drive 260 vs 288 (ratio 0.90)
+measured:  0 vs 8 active KCs, 0 shared, jaccard 0.000, spikes 0 vs 35 (ratio 0.00)
+KC sparsity: 0.0% / 0.2% of 4064 (biological target ~5%)
+
+wrote ../results/odours2.json

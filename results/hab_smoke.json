@@ -1,0 +1,91 @@
+{
+  "brain": "../brain_whole.npz",
+  "seeds": 1,
+  "pulses": 4,
+  "pulse_ms": 80.0,
+  "gap_ms": 220.0,
+  "hz": 180.0,
+  "channels": 400,
+  "populations": {
+    "giant_fiber": {
+      "n_cells": 2,
+      "curve_mean": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "curve_sd": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "first_pulse_spikes": 0.0,
+      "last_over_first": NaN,
+      "novel_over_first": NaN,
+      "retest_over_first": NaN,
+      "specific": false
+    },
+    "DNp_escape": {
+      "n_cells": 320,
+      "curve_mean": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "curve_sd": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "first_pulse_spikes": 0.0,
+      "last_over_first": NaN,
+      "novel_over_first": NaN,
+      "retest_over_first": NaN,
+      "specific": false
+    },
+    "all_DN": {
+      "n_cells": 1310,
+      "curve_mean": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "curve_sd": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "first_pulse_spikes": 0.0,
+      "last_over_first": NaN,
+      "novel_over_first": NaN,
+      "retest_over_first": NaN,
+      "specific": false
+    },
+    "VPN": {
+      "n_cells": 9201,
+      "curve_mean": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "curve_sd": [
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "first_pulse_spikes": 0.0,
+      "last_over_first": NaN,
+      "novel_over_first": NaN,
+      "retest_over_first": NaN,
+      "specific": false
+    }
+  }
+}

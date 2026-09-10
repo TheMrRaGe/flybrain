@@ -1,0 +1,291 @@
+{
+  "CS+": [
+    "ORN_DM6",
+    "ORN_DP1m",
+    "ORN_VM5d",
+    "ORN_DC2",
+    "ORN_DM5"
+  ],
+  "CS-": [
+    "ORN_VA2",
+    "ORN_DP1l",
+    "ORN_VM7d",
+    "ORN_DA4m",
+    "ORN_VM1"
+  ],
+  "k": 5,
+  "kc_thresh": 1.5,
+  "apl": 200.0,
+  "noise": 0.15,
+  "footprints": {
+    "ORN_D": {
+      "receptors": 28,
+      "spikes": 9306.0,
+      "active_kc": 664
+    },
+    "ORN_DA2": {
+      "receptors": 48,
+      "spikes": 11329.0,
+      "active_kc": 764
+    },
+    "ORN_DA3": {
+      "receptors": 34,
+      "spikes": 8765.0,
+      "active_kc": 633
+    },
+    "ORN_DA4l": {
+      "receptors": 33,
+      "spikes": 9940.0,
+      "active_kc": 708
+    },
+    "ORN_DA4m": {
+      "receptors": 35,
+      "spikes": 8347.0,
+      "active_kc": 607
+    },
+    "ORN_DC1": {
+      "receptors": 32,
+      "spikes": 9208.0,
+      "active_kc": 644
+    },
+    "ORN_DC2": {
+      "receptors": 22,
+      "spikes": 8343.0,
+      "active_kc": 608
+    },
+    "ORN_DC3": {
+      "receptors": 35,
+      "spikes": 10225.0,
+      "active_kc": 721
+    },
+    "ORN_DC4": {
+      "receptors": 23,
+      "spikes": 8885.0,
+      "active_kc": 656
+    },
+    "ORN_DL1": {
+      "receptors": 83,
+      "spikes": 8679.0,
+      "active_kc": 621
+    },
+    "ORN_DL2d": {
+      "receptors": 15,
+      "spikes": 9112.0,
+      "active_kc": 650
+    },
+    "ORN_DL2v": {
+      "receptors": 23,
+      "spikes": 8588.0,
+      "active_kc": 617
+    },
+    "ORN_DL3": {
+      "receptors": 103,
+      "spikes": 8950.0,
+      "active_kc": 647
+    },
+    "ORN_DL4": {
+      "receptors": 62,
+      "spikes": 9079.0,
+      "active_kc": 649
+    },
+    "ORN_DL5": {
+      "receptors": 43,
+      "spikes": 8848.0,
+      "active_kc": 628
+    },
+    "ORN_DM1": {
+      "receptors": 74,
+      "spikes": 9887.0,
+      "active_kc": 670
+    },
+    "ORN_DM2": {
+      "receptors": 54,
+      "spikes": 10431.0,
+      "active_kc": 695
+    },
+    "ORN_DM3": {
+      "receptors": 63,
+      "spikes": 11173.0,
+      "active_kc": 758
+    },
+    "ORN_DM4": {
+      "receptors": 32,
+      "spikes": 10128.0,
+      "active_kc": 680
+    },
+    "ORN_DM5": {
+      "receptors": 35,
+      "spikes": 9091.0,
+      "active_kc": 669
+    },
+    "ORN_DM6": {
+      "receptors": 58,
+      "spikes": 11281.0,
+      "active_kc": 789
+    },
+    "ORN_DP1l": {
+      "receptors": 33,
+      "spikes": 8158.0,
+      "active_kc": 584
+    },
+    "ORN_DP1m": {
+      "receptors": 31,
+      "spikes": 7695.0,
+      "active_kc": 564
+    },
+    "ORN_V": {
+      "receptors": 55,
+      "spikes": 9532.0,
+      "active_kc": 668
+    },
+    "ORN_VA2": {
+      "receptors": 83,
+      "spikes": 11194.0,
+      "active_kc": 760
+    },
+    "ORN_VA3": {
+      "receptors": 30,
+      "spikes": 9175.0,
+      "active_kc": 657
+    },
+    "ORN_VA4": {
+      "receptors": 34,
+      "spikes": 10195.0,
+      "active_kc": 706
+    },
+    "ORN_VA5": {
+      "receptors": 16,
+      "spikes": 9256.0,
+      "active_kc": 665
+    },
+    "ORN_VA6": {
+      "receptors": 63,
+      "spikes": 8379.0,
+      "active_kc": 616
+    },
+    "ORN_VA7l": {
+      "receptors": 29,
+      "spikes": 9585.0,
+      "active_kc": 672
+    },
+    "ORN_VA7m": {
+      "receptors": 24,
+      "spikes": 9393.0,
+      "active_kc": 662
+    },
+    "ORN_VC1": {
+      "receptors": 29,
+      "spikes": 9569.0,
+      "active_kc": 664
+    },
+    "ORN_VC2": {
+      "receptors": 32,
+      "spikes": 8834.0,
+      "active_kc": 630
+    },
+    "ORN_VC3": {
+      "receptors": 34,
+      "spikes": 9406.0,
+      "active_kc": 666
+    },
+    "ORN_VC4": {
+      "receptors": 38,
+      "spikes": 9425.0,
+      "active_kc": 663
+    },
+    "ORN_VC5": {
+      "receptors": 31,
+      "spikes": 8949.0,
+      "active_kc": 642
+    },
+    "ORN_VL1": {
+      "receptors": 82,
+      "spikes": 8623.0,
+      "active_kc": 631
+    },
+    "ORN_VL2a": {
+      "receptors": 98,
+      "spikes": 9698.0,
+      "active_kc": 683
+    },
+    "ORN_VL2p": {
+      "receptors": 45,
+      "spikes": 9900.0,
+      "active_kc": 702
+    },
+    "ORN_VM1": {
+      "receptors": 33,
+      "spikes": 8687.0,
+      "active_kc": 629
+    },
+    "ORN_VM2": {
+      "receptors": 41,
+      "spikes": 9675.0,
+      "active_kc": 698
+    },
+    "ORN_VM3": {
+      "receptors": 43,
+      "spikes": 10901.0,
+      "active_kc": 733
+    },
+    "ORN_VM4": {
+      "receptors": 78,
+      "spikes": 9826.0,
+      "active_kc": 701
+    },
+    "ORN_VM5d": {
+      "receptors": 84,
+      "spikes": 8886.0,
+      "active_kc": 655
+    },
+    "ORN_VM5v": {
+      "receptors": 34,
+      "spikes": 8825.0,
+      "active_kc": 641
+    },
+    "ORN_VM6m": {
+      "receptors": 25,
+      "spikes": 8952.0,
+      "active_kc": 636
+    },
+    "ORN_VM6v": {
+      "receptors": 34,
+      "spikes": 10156.0,
+      "active_kc": 690
+    },
+    "ORN_VM7d": {
+      "receptors": 36,
+      "spikes": 9062.0,
+      "active_kc": 657
+    },
+    "ORN_VM7v": {
+      "receptors": 25,
+      "spikes": 9416.0,
+      "active_kc": 681
+    }
+  },
+  "predicted": {
+    "active": [
+      928,
+      874
+    ],
+    "shared": 672,
+    "jaccard": 0.5946902654867257,
+    "drive": [
+      45296.0,
+      45448.0
+    ]
+  },
+  "measured": {
+    "active": [
+      1151,
+      1129
+    ],
+    "shared": 852,
+    "jaccard": 0.5966386554621849,
+    "spikes": [
+      18727.0,
+      18618.0
+    ]
+  }
+}

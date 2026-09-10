@@ -1,0 +1,204 @@
+{
+  "summary": {
+    "legs": {
+      "T1L": {
+        "coxa": [
+          6,
+          6
+        ],
+        "trochanter": [
+          11,
+          8
+        ],
+        "tibia": [
+          15,
+          2
+        ],
+        "tarsus": [
+          8,
+          5
+        ]
+      },
+      "T1R": {
+        "coxa": [
+          6,
+          4
+        ],
+        "trochanter": [
+          10,
+          8
+        ],
+        "tibia": [
+          14,
+          2
+        ],
+        "tarsus": [
+          7,
+          4
+        ]
+      },
+      "T2L": {
+        "coxa": [
+          2,
+          7
+        ],
+        "trochanter": [
+          9,
+          5
+        ],
+        "tibia": [
+          11,
+          2
+        ],
+        "tarsus": [
+          6,
+          0
+        ]
+      },
+      "T2R": {
+        "coxa": [
+          2,
+          7
+        ],
+        "trochanter": [
+          9,
+          5
+        ],
+        "tibia": [
+          11,
+          2
+        ],
+        "tarsus": [
+          6,
+          0
+        ]
+      },
+      "T3L": {
+        "coxa": [
+          2,
+          6
+        ],
+        "trochanter": [
+          9,
+          5
+        ],
+        "tibia": [
+          17,
+          2
+        ],
+        "tarsus": [
+          8,
+          0
+        ]
+      },
+      "T3R": {
+        "coxa": [
+          2,
+          6
+        ],
+        "trochanter": [
+          9,
+          6
+        ],
+        "tibia": [
+          16,
+          2
+        ],
+        "tarsus": [
+          7,
+          0
+        ]
+      }
+    },
+    "wings": {
+      "L": {
+        "down": 5,
+        "up": 7,
+        "steer": 16
+      },
+      "R": {
+        "down": 5,
+        "up": 7,
+        "steer": 16
+      }
+    },
+    "total_vnc_motor": 699
+  },
+  "sample_read": {
+    "legs": {
+      "T1L": {
+        "coxa": 1.0,
+        "coxa_drive": 11.166666666666666,
+        "trochanter": -1.0,
+        "trochanter_drive": 0.625,
+        "tibia": -1.0,
+        "tibia_drive": 4.5,
+        "tarsus": 0.0,
+        "tarsus_drive": 0.0
+      },
+      "T1R": {
+        "coxa": 1.0,
+        "coxa_drive": 8.666666666666666,
+        "trochanter": -1.0,
+        "trochanter_drive": 1.625,
+        "tibia": -1.0,
+        "tibia_drive": 1.0,
+        "tarsus": 0.0,
+        "tarsus_drive": 0.0
+      },
+      "T2L": {
+        "coxa": 1.0,
+        "coxa_drive": 9.0,
+        "trochanter": -0.5475113122171945,
+        "trochanter_drive": 4.911111111111111,
+        "tibia": 0.0,
+        "tibia_drive": 0.0,
+        "tarsus": 1.0,
+        "tarsus_drive": 0.16666666666666666
+      },
+      "T2R": {
+        "coxa": 1.0,
+        "coxa_drive": 7.0,
+        "trochanter": -0.7560975609756097,
+        "trochanter_drive": 0.9111111111111112,
+        "tibia": 0.0,
+        "tibia_drive": 0.0,
+        "tarsus": 0.0,
+        "tarsus_drive": 0.0
+      },
+      "T3L": {
+        "coxa": 1.0,
+        "coxa_drive": 1.5,
+        "trochanter": -1.0,
+        "trochanter_drive": 0.4,
+        "tibia": 1.0,
+        "tibia_drive": 0.29411764705882354,
+        "tarsus": 0.0,
+        "tarsus_drive": 0.0
+      },
+      "T3R": {
+        "coxa": -1.0,
+        "coxa_drive": 0.6666666666666666,
+        "trochanter": 1.0,
+        "trochanter_drive": 0.2222222222222222,
+        "tibia": 1.0,
+        "tibia_drive": 0.4375,
+        "tarsus": 1.0,
+        "tarsus_drive": 0.14285714285714285
+      }
+    },
+    "wings": {
+      "L": {
+        "phase": -1.0,
+        "power": 0.14285714285714285,
+        "steer": 4.125
+      },
+      "R": {
+        "phase": 1.0,
+        "power": 0.4,
+        "steer": 2.875
+      }
+    }
+  },
+  "motor_spikes": 781
+}

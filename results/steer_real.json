@@ -1,0 +1,32 @@
+[
+ {
+  "readout": "DNa02",
+  "network": "real",
+  "stim_left": -0.43333333333333335,
+  "stim_right": 0.03333333333333333,
+  "difference": 0.4666666666666667,
+  "dprime": 1.1056064360331166,
+  "p": 0.00016167190147540922,
+  "spikes_per_trial": 0.7666666666666667
+ },
+ {
+  "readout": "DNa family",
+  "network": "real",
+  "stim_left": -0.23913321149502847,
+  "stim_right": -0.018461127890065442,
+  "difference": 0.22067208360496304,
+  "dprime": 4.205627959558824,
+  "p": 3.019859359162157e-11,
+  "spikes_per_trial": 330.0
+ },
+ {
+  "readout": "all DNs",
+  "network": "real",
+  "stim_left": 0.02230485461224086,
+  "stim_right": 0.011536115893284462,
+  "difference": -0.0107687387189564,
+  "dprime": -1.6975469490832977,
+  "p": 6.045949421012782e-07,
+  "spikes_per_trial": 11853.2
+ }
+]

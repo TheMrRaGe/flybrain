@@ -1,0 +1,11 @@
+# raw connectome (1.1 GB, download from https://male-cns.janelia.org/download/)
+data/
+# built graphs and creature files (rebuild with scripts/build_creature.py)
+graphs/
+*.npz
+# scratch
+__pycache__/
+*.pyc
+*.bak
+.qodo/
+scripts/results/

@@ -1,0 +1,27 @@
+{
+  "brain": "../brain_mirrored.npz",
+  "trials": 60,
+  "channels": 5,
+  "window_ms": 400.0,
+  "n_kenyon": 4064,
+  "n_connected": 4022,
+  "n_plastic_synapses": 33496,
+  "kc_overlap": 0.7217473884140551,
+  "rung1_unconstrained": {
+    "acc": 1.0,
+    "sd": 0.0
+  },
+  "rung2_anatomical": {
+    "acc": 1.0,
+    "sd": 0.0
+  },
+  "rung3_depression_only": {
+    "acc": 0.9333333333333333,
+    "sd": 0.020412414523193187,
+    "index_naive": -0.12191006465533745,
+    "index_trained": 0.09473733839319325,
+    "depressed_cells": 994
+  },
+  "measured_conditioning_delta": -0.04,
+  "ceiling_shift": 0.2166474030485307
+}

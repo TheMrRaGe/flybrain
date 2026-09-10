@@ -1,0 +1,32 @@
+{
+  "brain": "../brain_mirrored.npz",
+  "repeats": 4,
+  "channels": 5,
+  "odour_ms": 600.0,
+  "punish_hz": 180.0,
+  "conditions": {
+    "CS+": {
+      "ppl1_spikes": 808.0,
+      "peak_phasic_da": 0.2943793758749962
+    },
+    "CS-": {
+      "ppl1_spikes": 662.0,
+      "peak_phasic_da": 0.2368123009800911
+    },
+    "CS++punish": {
+      "ppl1_spikes": 1020.25,
+      "peak_phasic_da": 0.3800075352191925
+    },
+    "CS-+punish": {
+      "ppl1_spikes": 877.25,
+      "peak_phasic_da": 0.33080893009901047
+    }
+  },
+  "da_punish_over_unpaired": 1.290876896826349,
+  "trace_cosine_CSplus_vs_CSminus": 0.8479505777359009,
+  "trace_top200_jaccard": 0.5209125475285171,
+  "verdict": [
+    "DOPAMINE CARRIES LITTLE INFORMATION \u2014 punishment barely exceeds the dopamine an odour drives on its own",
+    "TAG IS NOT ODOUR-SPECIFIC \u2014 both odours tag nearly the same cells"
+  ]
+}
