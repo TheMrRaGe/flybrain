@@ -112,8 +112,7 @@ def main():
     zo = (Ao - Ro) / np.maximum(sdo / np.sqrt(a.repeats) * np.sqrt(2), 1e-9)
     flip_o = (np.sign(Ao) != np.sign(Ro)) & (np.abs(zo) > 3) & (np.abs(Ao - Ro) > 1.0)
     tyo = ty[nd + nm:]; sdo_side = side[nd + nm:]
-    log(f"
-  MOTOR NEURONS ({len(Ao)}): corr(dS_both, dS_reversed) {corr_mo:+.3f}; "
+    log(f"  MOTOR NEURONS ({len(Ao)}): corr(dS_both, dS_reversed) {corr_mo:+.3f}; "
         f"spiking at all: {int((np.abs(res['both']['pre'][nd+nm:]) > 0).sum())}; reversing (|z|>3, >1 spike): {int(flip_o.sum())}")
     for i in np.argsort(-np.abs(zo))[:12]:
         if abs(zo[i]) < 2.5: break

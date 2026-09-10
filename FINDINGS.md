@@ -1261,3 +1261,47 @@ consequence, this time on the output side.
 
 For comparison DNa02 (the steering neuron) goes direct to coxa rotators in all three
 legs (+92 / +87 / +64) - a different motor pool, untouched by the learning.
+
+## IT LEARNS — the change reaches the motor neurons (`learned_motor.json`)
+
+`learned_dn.py` extended to the 699 muscle-labelled VNC motor neurons, same run,
+same paired-seed design, kc_thresh 1.0, strength 0.35, 8 seeds, 12 trials:
+
+    corr(dS_both, dS_reversed):   MBONs -0.803    DNs -0.801    MOTOR NEURONS -0.916
+    motor neurons spiking during odour: 425 / 699;  reversing at |z|>3: 33
+
+The strongest reversal of any layer is at the muscles. The cells are a coherent,
+bilateral motor pattern:
+
+| motor neuron | muscle | dS both (punish CS+) | dS reversed | naive S |
+|---|---|---|---|---|
+| DVMn 2a,b  L / R / R / L | wing upstroke (power) | +39.0 / +41.8 / +42.0 / +46.1 | -25.1 / -25.5 / -26.4 / -27.9 | +48 |
+| DLMn c-f  R | wing downstroke (power) | +57.8 | -33.6 | +34 |
+| MNhm03  R / L | haltere | +8.4 / +3.5 | -9.6 / -7.8 | +14 / +10 |
+| MNad03 R, MNad42 R, MNad09 L | abdominal | +10.6 / +5.4 / +0.8 | -7.4 / -9.0 / -1.1 | +16 / +24 / 0 |
+| Tr flexor R, Sternal post. rotator R | leg | +1.5 / +6.3 | -3.0 / -4.4 | +3 / +10 |
+
+After punishing CS+, the punished odour evokes MORE wing-power, haltere and
+abdominal motor-neuron drive relative to the rewarded odour; reverse the contingency
+and every one of these flips sign. Wing power muscles + halteres + abdomen is the
+flight motor. This is consistent with a takeoff / escape response to the punished
+odour - which is what aversive olfactory conditioning produces in the animal - and
+it is stated as consistent-with, not as a demonstrated behaviour: there is no body
+here, only the command to the muscles.
+
+The pathway is traceable link by link, each measured today:
+
+    KC -> MBON05 / MBON21   (the plastic synapses, PAM08 compartment, d_P reverses)
+        -> DNg33            (influence map: MBON05 -152, MBON21 +67 on DNg33;
+                             learned change +80 / -51, bilateral)
+        -> DLMn / DVMn      (DNg33 two-hop weight onto wing power motor neurons)
+
+**What made the difference was not the circuit or the rule - both were finished this
+morning.** It was running the test where the odour does not saturate the descending
+population (strength 0.35, PN ~130 Hz, in the sustained biological range) instead of
+at 200 Hz on every receptor, where the DNs sit at a ceiling that MBON output cannot
+move. The four "fixes" refuted this afternoon were all attempts to move the ceiling;
+the answer was to stop driving the network into it.
+
+Counterbalanced at the DN level (odours swapped: DNs -0.617, same cells); motor-level
+swap in `learned_motor_swap.json`.
