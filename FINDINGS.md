@@ -1190,3 +1190,36 @@ kc_thresh 1.0:
 
 The mushroom body can move the action bus in this regime. `--strength` and
 `--kc-thresh` now thread through conditioning4 / learned_dn / learned_steering.
+
+## LEARNING REACHES THE ACTION BUS (`learned_dn.py`, kc_thresh 1.0, strength 0.35)
+
+Same training, same paired-seed population test as before, at the moderate-odour
+regime. 8 seeds, 12 trials.
+
+    corr(dS_both, dS_reversed):   MBONs  -0.803     DNs  -0.801
+    DNs whose (CS+ - CS-) response change reverses with the contingency
+        (|z|>3, >1 spike):  17 / 1,310           (full-strength regime: 3, i.e. chance)
+
+The learned change at the descending neurons now reverses with the contingency
+across the population, as strongly as it does at the MBONs. The cells that carry it
+come in **bilateral pairs with matching sign**:
+
+| DN | side | dS both | dS reversed | z | naive S |
+|---|---|---|---|---|---|
+| DNd02 | R / L | -6.0 / -4.5 | +5.4 / +5.1 | -10.5 / -5.8 | +7 / +8 |
+| DNbe007 | L / R | -15.3 / -16.5 | +11.8 / +12.6 | -6.4 / -5.4 | +7 / +13 |
+| DNge069 | R / L | -7.5 / -7.1 | +4.9 / +4.3 | -5.2 / -4.4 | +3 / +4 |
+| DNg33 | L / R | **+79.9 / +80.3** | **-51.1 / -50.6** | +3.1 / +3.1 | +65 / +65 |
+| DNp56 | R / L | -2.1 / -2.4 | +0.9 / +0.3 | -3.4 / -3.2 | -1 / -1 |
+| DNge143 | L / R | +3.1 / +2.9 | -3.4 / -3.3 | +3.5 / +3.1 | -1 / -1 |
+
+The two hemispheres are independent readouts, so paired agreement is an internal
+replication. DNg33 - the cell MBON05 and MBON21 pushed in opposite directions in the
+influence map - moves by +80 / -51 spikes per 800 ms, the largest learned change on
+the bus. DNbe007 and DNd02 shift by 5-16 spikes on a naive baseline of 7-13, i.e.
+their odour preference roughly inverts.
+
+What changed is not the circuit or the rule: it is that the test is run where the
+odour does not saturate the pathway. At strength 1.0 the DN population sits at its
+ceiling and MBON output cannot move it; at 0.35 (PN 130 Hz, within the biological
+sustained range) it can, and the learned signal comes through.
