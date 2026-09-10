@@ -1,0 +1,317 @@
+[
+ {
+  "type": "dorsal_tpGRN",
+  "n": 10,
+  "feed": 1785.0,
+  "motor": 2566.0,
+  "brain": 72453.0
+ },
+ {
+  "type": "PhG1c",
+  "n": 4,
+  "feed": 1676.0,
+  "motor": 2105.0,
+  "brain": 53185.0
+ },
+ {
+  "type": "LB2a",
+  "n": 4,
+  "feed": 1647.0,
+  "motor": 1895.0,
+  "brain": 44070.0
+ },
+ {
+  "type": "LB3d",
+  "n": 26,
+  "feed": 1633.0,
+  "motor": 1869.0,
+  "brain": 59408.0
+ },
+ {
+  "type": "claw_tpGRN",
+  "n": 50,
+  "feed": 1623.0,
+  "motor": 2102.0,
+  "brain": 44461.0
+ },
+ {
+  "type": "PhG9",
+  "n": 4,
+  "feed": 1620.0,
+  "motor": 1832.0,
+  "brain": 29945.0
+ },
+ {
+  "type": "LB4a",
+  "n": 4,
+  "feed": 1617.0,
+  "motor": 1830.0,
+  "brain": 54848.0
+ },
+ {
+  "type": "LB4b",
+  "n": 8,
+  "feed": 1577.0,
+  "motor": 1750.0,
+  "brain": 53683.0
+ },
+ {
+  "type": "PhG8",
+  "n": 4,
+  "feed": 1567.0,
+  "motor": 1733.0,
+  "brain": 68588.0
+ },
+ {
+  "type": "LB3c",
+  "n": 23,
+  "feed": 564.0,
+  "motor": 1299.0,
+  "brain": 54135.0
+ },
+ {
+  "type": "LgAG7",
+  "n": 5,
+  "feed": 316.0,
+  "motor": 2073.0,
+  "brain": 97359.0
+ },
+ {
+  "type": "LB3b",
+  "n": 11,
+  "feed": 113.0,
+  "motor": 422.0,
+  "brain": 59827.0
+ },
+ {
+  "type": "LgLG6",
+  "n": 16,
+  "feed": 90.0,
+  "motor": 439.0,
+  "brain": 60525.0
+ },
+ {
+  "type": "LB1d",
+  "n": 5,
+  "feed": 62.0,
+  "motor": 357.0,
+  "brain": 51162.0
+ },
+ {
+  "type": "PhG7",
+  "n": 4,
+  "feed": 42.0,
+  "motor": 313.0,
+  "brain": 44398.0
+ },
+ {
+  "type": "LB3a",
+  "n": 17,
+  "feed": 41.0,
+  "motor": 409.0,
+  "brain": 57433.0
+ },
+ {
+  "type": "LgAG3",
+  "n": 7,
+  "feed": 27.0,
+  "motor": 261.0,
+  "brain": 56414.0
+ },
+ {
+  "type": "WG3",
+  "n": 96,
+  "feed": 24.0,
+  "motor": 433.0,
+  "brain": 64621.0
+ },
+ {
+  "type": "LgAG5",
+  "n": 4,
+  "feed": 18.0,
+  "motor": 309.0,
+  "brain": 48769.0
+ },
+ {
+  "type": "LgLG7",
+  "n": 21,
+  "feed": 18.0,
+  "motor": 156.0,
+  "brain": 39258.0
+ },
+ {
+  "type": "LgLG1b",
+  "n": 134,
+  "feed": 17.0,
+  "motor": 190.0,
+  "brain": 41059.0
+ },
+ {
+  "type": "LgLG3",
+  "n": 162,
+  "feed": 14.0,
+  "motor": 401.0,
+  "brain": 66534.0
+ },
+ {
+  "type": "LgAG8",
+  "n": 9,
+  "feed": 13.0,
+  "motor": 250.0,
+  "brain": 55366.0
+ },
+ {
+  "type": "LgAG2",
+  "n": 11,
+  "feed": 9.0,
+  "motor": 290.0,
+  "brain": 49447.0
+ },
+ {
+  "type": "LB1b",
+  "n": 6,
+  "feed": 7.0,
+  "motor": 87.0,
+  "brain": 11966.0
+ },
+ {
+  "type": "LgAG1",
+  "n": 25,
+  "feed": 7.0,
+  "motor": 200.0,
+  "brain": 81635.0
+ },
+ {
+  "type": "WG2",
+  "n": 97,
+  "feed": 6.0,
+  "motor": 344.0,
+  "brain": 55477.0
+ },
+ {
+  "type": "LgLG4",
+  "n": 42,
+  "feed": 2.0,
+  "motor": 172.0,
+  "brain": 40484.0
+ },
+ {
+  "type": "SNch05",
+  "n": 8,
+  "feed": 1.0,
+  "motor": 171.0,
+  "brain": 37932.0
+ },
+ {
+  "type": "LB1a",
+  "n": 11,
+  "feed": 0.0,
+  "motor": 266.0,
+  "brain": 59635.0
+ },
+ {
+  "type": "LB1c",
+  "n": 16,
+  "feed": 0.0,
+  "motor": 156.0,
+  "brain": 70548.0
+ },
+ {
+  "type": "LB1e",
+  "n": 19,
+  "feed": 0.0,
+  "motor": 151.0,
+  "brain": 11559.0
+ },
+ {
+  "type": "LB2c",
+  "n": 6,
+  "feed": 0.0,
+  "motor": 2237.0,
+  "brain": 136224.0
+ },
+ {
+  "type": "LB2d",
+  "n": 5,
+  "feed": 0.0,
+  "motor": 76.0,
+  "brain": 11863.0
+ },
+ {
+  "type": "LgAG4",
+  "n": 8,
+  "feed": 0.0,
+  "motor": 156.0,
+  "brain": 50495.0
+ },
+ {
+  "type": "LgAG6",
+  "n": 4,
+  "feed": 0.0,
+  "motor": 56.0,
+  "brain": 8424.0
+ },
+ {
+  "type": "LgLG1a",
+  "n": 136,
+  "feed": 0.0,
+  "motor": 576.0,
+  "brain": 147622.0
+ },
+ {
+  "type": "LgLG2",
+  "n": 129,
+  "feed": 0.0,
+  "motor": 285.0,
+  "brain": 56447.0
+ },
+ {
+  "type": "LgLG5",
+  "n": 13,
+  "feed": 0.0,
+  "motor": 93.0,
+  "brain": 14963.0
+ },
+ {
+  "type": "LgLG8",
+  "n": 14,
+  "feed": 0.0,
+  "motor": 0.0,
+  "brain": 9194.0
+ },
+ {
+  "type": "PhG2",
+  "n": 4,
+  "feed": 0.0,
+  "motor": 209.0,
+  "brain": 57964.0
+ },
+ {
+  "type": "PhG4",
+  "n": 4,
+  "feed": 0.0,
+  "motor": 170.0,
+  "brain": 26030.0
+ },
+ {
+  "type": "SNxxxx",
+  "n": 7,
+  "feed": 0.0,
+  "motor": 145.0,
+  "brain": 15947.0
+ },
+ {
+  "type": "WG1",
+  "n": 96,
+  "feed": 0.0,
+  "motor": 698.0,
+  "brain": 70730.0
+ },
+ {
+  "type": "WG4",
+  "n": 96,
+  "feed": 0.0,
+  "motor": 363.0,
+  "brain": 115668.0
+ }
+]

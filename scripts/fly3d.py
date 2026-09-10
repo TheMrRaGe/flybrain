@@ -48,6 +48,10 @@ from flysim import FlyBrain, Params
 # viewer, so these are comfortable numbers to think in)
 ROOM = {"w": 64.0, "d": 44.0, "h": 30.0}
 MODES = ["stop", "walk", "groom", "takeoff", "flight", "land"]
+# spontaneous takeoff probability per walk-bout decision. IMPOSED, not derived (see
+# the docstring). fly3d_learn.py sets it to 0 and derives takeoff from the wing-power
+# motor neurons instead.
+RANDOM_TAKEOFF = 0.26
 
 
 # --------------------------------------------------------------------------- #
@@ -207,7 +211,7 @@ def step_body(b: Body, cmd: dict, dt: float, t: float, threat: float, bias: floa
     if b.mode in ("walk", "stop", "groom") and t >= b.mode_until:
         r = rng.random()
         if b.mode == "walk":
-            if r < 0.26:
+            if r < RANDOM_TAKEOFF:
                 b.mode, b.mode_until, b.escaping = "takeoff", t + 0.20, False
             elif r < 0.48:
                 b.mode, b.mode_until = "stop", t + rng.uniform(0.35, 1.1)

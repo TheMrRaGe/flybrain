@@ -767,12 +767,33 @@ class FlyBrain:
                         self.drive_hz[grp["M"]] += (self.p.max_rate_hz * st
                                                     * float(strength) * 0.5)
 
+    # DESIGN DECISION 16 - gustatory identity from FUNCTION, not array position.
+    # The types are named by body part (LB labellum, LgLG/LgAG legs, WG wings, PhG
+    # pharynx), not by modality, and the first version split "sweet" and "bitter" by
+    # array index. MEASURED: the "sweet" 120 drove the proboscis motor neurons 0 times;
+    # the "bitter" 120 drove them 435 spikes per tick. Screening all 60 types alone
+    # against the feeding motor neurons (MN9/10/11/12/MNx01 - the pathway Shiu et al.
+    # validated) gives a clean split: nine types at 1,600-1,800 spikes / 600 ms, the
+    # rest at ~0. Those nine are the appetitive set. Bitter suppression is weak in the
+    # model (LB1a-e co-stimulation: -12%); LB1a-e is the aversive set by elimination.
+    # SUPERSEDED the same day by the published mapping (taste-feeding connectome,
+    # bioRxiv 2025.08.25.671814 / Cell 2026, made on MaleCNS itself): LB1a-d bitter
+    # (Gr33a), LB3a water (ppk28), LB3b low salt (Ir56b), LB3b-c sugar (Gr64f), LB3d
+    # aversive heavy-metal (Ir47a); LB2, LB4 novel/unassigned. The functional screen
+    # was WRONG about LB3d: an aversive type drives the feeding motor neurons harder
+    # (1,633) than sugar LB3c (564) - the model's SEZ is not modality-selective.
+    TASTE_SWEET = ("LB3c", "LB3b")
+    TASTE_BITTER = ("LB1a", "LB1b", "LB1c", "LB1d")
+    TASTE_WATER = ("LB3a",)
+    FEEDING_MN = ("MN9", "MN10", "MN11D", "MN11V", "MN12D", "MNx01")
+
     def taste(self, quality: float, n: int = 120) -> None:
-        """quality > 0 sweet, < 0 bitter. Different receptor sets, as in the animal."""
+        """quality > 0 sweet, < 0 bitter. Receptor sets chosen by measured function."""
         g = self.pop["gustatory"]
         if len(g) == 0:
             return
-        pick = g[:min(n, len(g))] if quality >= 0 else g[-min(n, len(g)):]
+        ty = self.type[g].astype(str)
+        pick = g[np.isin(ty, self.TASTE_SWEET if quality >= 0 else self.TASTE_BITTER)]
         self.drive_hz[g] = 0.0
         self.drive_hz[pick] = self.p.max_rate_hz * min(abs(float(quality)), 1.0)
 

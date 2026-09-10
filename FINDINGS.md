@@ -1318,3 +1318,54 @@ That completes the standard the synaptic result was held to, at every layer the
 model can read: two odour assignments, two hemispheres, paired seeds,
 plasticity-off control at exactly zero, sign reversal with the contingency -
 at the MBONs, at the descending neurons, and at the motor neurons.
+
+## The survival box, and the taste / hunger layer researched before building on it
+
+`flybox.py` (in progress): a continuously running arena - food, water, heat hazards,
+shelter, day/night; energy, water, warmth; death replaces the body and by default the
+brain persists; eating drives PAM08 and hazards drive PPL105 with plasticity on, so
+the world is the teacher. First smoke run exposed three weakly modelled layers, and
+each was researched rather than patched:
+
+**Gustatory identity - decision 16.** `taste()` split sweet/bitter by ARRAY INDEX. The
+"sweet" 120 drove the proboscis motor neurons 0 times; the "bitter" 120 drove them 435
+spikes/tick. Types are named by body part (LB labellum, LgLG/LgAG leg, WG wing, PhG
+pharynx), not modality, and the dataset's `subclass`/`receptorType` carry none. The
+published mapping (taste-feeding connectome, bioRxiv 2025.08.25.671814 / Cell 2026,
+built on MaleCNS): **LB1a-d bitter (Gr33a), LB3a water (ppk28), LB3b low salt
+(Ir56b), LB3b-c sugar (Gr64f), LB3d aversive heavy-metal (Ir47a)**; LB2 and LB4 are
+novel/unassigned. Leg GRNs: LgAG ascend to the brain (feeding initiation), LgLG stay
+in the thoracic ganglia (locomotion suppression; Thoma et al. 2016).
+
+**The model's taste pathway is not modality-selective (`grn_screen`, `lglg_screen`).**
+Driving each type alone against the feeding motor neurons (MN9/10/11/12/MNx01, the
+pathway Shiu et al. validated): LB3d (aversive) 1,633 spikes/600 ms, LB4a/b, LB2a,
+PhG1c/8/9, taste pegs 1,600-1,800; sugar LB3c **564**; bitter LB1a-d 0; water LB3a 41.
+In a walking context (mechano 60 Hz) the feeding motor neurons sit at 1,590 with no
+taste at all. Bitter suppression of sweet: -12%. Walking suppression by any gustatory
+type: at most -23% (LB3b). So "the fly is feeding" cannot yet be read from the
+proboscis motor neurons selectively, and "sugar stops walking" is weak. Both are
+recorded as limits of the SEZ under this parameterisation, not worked around.
+
+**Hunger cannot enter through the identified neurons - transmitter labels again.**
+The hunger/satiety cells are in the dataset by name and their directions are
+sourced: IPC (16; insulin + DSK, active when fed, drop with starvation), DH44 (6;
+internal nutrient sensors), AstA1 (2; satiety), NPFL1 (2; hunger, gates appetitive
+memory - Krashes 2009), LK (12; rises with starvation), Hugin-RG (4). But **IPC, DH44,
+LK, NPFL1 and Hugin all carry `consensus_nt = unclear`, sign 0, and have zero
+out-edges in the simulation** - like DNd02. Only AstA1 (GABA) transmits. The
+`define_drive("hunger", "endocrine")` hack drives a population that cannot speak.
+Peptidergic modulation is outside what a fast-synapse LIF represents; a sourced
+substitute has to model the peptide's *targets* (e.g. NPF -> PPL1-gamma1pedc gating,
+insulin -> sugar-GRN sensitivity via DopEcR, Inagaki 2012), which is the next piece
+of research, not a parameter.
+
+### Next (resume here)
+1. Finish `flybox.py` with the sourced gustatory sets; read feeding from LB3c-driven
+   proboscis motor activity with the mechano confound measured, or find the
+   sugar-selective second-order neurons (G2N-1, Zorro, Usnea... Sterne et al. 2021)
+   and read those.
+2. Hunger: implement through targets, not peptide cells - NPF gating of the PPL1
+   channel and sugar-GRN gain, each with its source.
+3. Then the box experiment: lifespan across lives, inherit vs naive, time near
+   hazards vs food.
