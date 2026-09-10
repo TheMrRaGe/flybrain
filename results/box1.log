@@ -40,3 +40,19 @@ loading ../brain_mirrored.npz ...
   life 1 t= 210.0s pos=(-19.7,-21.0) e=0.67 w=0.58 c=1.00 leg= 492 walk night ate 69 drank 0 hurt 10  w 98.47%
   life 1 t= 216.0s pos=(-11.0,  1.4) e=0.65 w=0.57 c=0.97 leg= 464 walk night ate 69 drank 0 hurt 10  w 98.46%
   life 1 t= 222.0s pos=(-16.9, 12.4) e=0.62 w=0.56 c=0.93 leg= 460 walk night ate 69 drank 0 hurt 10  w 98.45%
+  life 1 t= 228.0s pos=(  1.5,  9.1) e=0.60 w=0.54 c=0.90 leg= 502 walk night ate 69 drank 0 hurt 10  w 98.44%
+  life 1 t= 234.0s pos=(  3.0,  7.1) e=0.28 w=0.53 c=0.98 leg= 520 walk night ate 69 drank 0 hurt 20  w 98.29%
+  life 1 t= 240.0s pos=(  3.4,  4.4) e=0.25 w=0.52 c=0.96 leg= 533 walk day ate 69 drank 0 hurt 20  w 98.28%
+  life 1 t= 246.0s pos=(  8.7, 26.6) e=0.23 w=0.51 c=0.98 leg= 475 walk day ate 69 drank 0 hurt 20  w 98.27%
+  life 1 t= 252.0s pos=( 13.4, 29.5) e=0.21 w=0.50 c=1.00 leg= 440 walk day ate 69 drank 0 hurt 20  w 98.26%
+  life 1 t= 258.0s pos=(  0.2, 22.2) e=0.19 w=0.54 c=1.00 leg= 375 feed day ate 69 drank 1 hurt 20  w 98.26%
+  life 1 t= 264.0s pos=(  0.2, 22.2) e=0.18 w=1.00 c=1.00 leg= 477 feed day ate 69 drank 41 hurt 20  w 98.14%
+  life 1 t= 270.0s pos=(  0.2, 22.2) e=0.17 w=1.00 c=1.00 leg= 615 feed day ate 69 drank 81 hurt 20  w 98.11%
+  life 1 t= 276.0s pos=(  0.4, 18.3) e=0.15 w=1.00 c=1.00 leg= 491 walk day ate 69 drank 99 hurt 20  w 98.10%
+  life 1 t= 282.0s pos=(  0.3, 20.1) e=0.13 w=1.00 c=1.00 leg= 420 walk day ate 69 drank 106 hurt 20  w 98.09%
+Traceback (most recent call last):
+  File "C:\Users\Shwif\OneDrive\Desktop\flybrain\scripts\flybox.py", line 452, in <module>
+    main()
+  File "C:\Users\Shwif\OneDrive\Desktop\flybrain\scripts\flybox.py", line 433, in main
+    os.replace(tmp, state_path)
+PermissionError: [WinError 5] Access is denied: '../results/box1\\state.json.tmp' -> '../results/box1\\state.json'

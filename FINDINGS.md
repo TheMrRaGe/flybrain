@@ -1405,3 +1405,17 @@ None has controlled associative learning; none reads motor neurons; all assign
 glutamate inhibitory and drop "unclear" cells, so all share the silent peptidergic
 / DNd02 problem. The antennal-lobe saturation is independently reported, which is
 evidence for the FlyEM note that it is the transmitter table, not us.
+
+**Water -> proboscis is dark (`flybox.py`, 10 Sept evening).** ppk28 water GRNs (LB3a,
+17 cells, ACh) at 200 Hz: 6 proboscis motor spikes/tick, i.e. rest; the sugar set gives
+454 and saturates by 100 Hz. Their second-order targets fire strongly (GNG229 241,
+GNG175 230, DNg67 167 spikes/800 ms; E/I healthy) but **GNG229 and GNG175 are labelled
+GABAergic** and DNg67 descends to the VNC, so there is no excitatory route to MN9/11/12.
+The ISNs (4 cells, the thirst/hunger integrators of Jourjine et al. 2016) driven at
+30 mV also give nothing. Either those two labels are wrong - the same pattern as
+lLN1/lLN2, DNd02 and the peptide cells - or the water PER path lies below the
+5-synapse threshold. Unresolved. **In the box, drinking is therefore IMPOSED** (uptake
+on contact while stationary, gated by thirst) and labelled as such in the code;
+eating is derived from the proboscis motor neurons. First life (box1): ate 69 ticks,
+drank 106, 20 hazard contacts costing 0.6 of its energy - hazards are what kills it,
+which is what the learning has to fix.

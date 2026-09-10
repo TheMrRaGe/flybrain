@@ -185,7 +185,7 @@ class BoxBrain:
         #   Sugar GRN gain roughly doubles with starvation via dopamine/DopEcR
         #   (Inagaki et al. 2012, Cell).
         self.ppl101 = b._da_by_type["PPL101"]["cells"]
-        self.fed_level, self.taste_gain = 0.0, 1.0
+        self.fed_level, self.taste_gain, self.water_gain = 0.0, 1.0, 1.0
         self.steps = int(round(TICK_MS / b.p.dt))
         self.base = None
         self.mbon = b.pop["MBON"]
@@ -198,8 +198,18 @@ class BoxBrain:
         b.drive_hz[self.mR] = hzR
         if smell:
             b.smell_bilateral(smell[0], smell[1])
-        if touch is not None:
-            b.taste(self.taste_gain if touch in ("food", "water") else -1.0)
+        if touch == "food":
+            b.taste(self.taste_gain)
+        elif touch == "water":
+            # ppk28 water GRNs (LB3a), gain by thirst (Jourjine et al. 2016 - ISNs gate
+            # water consumption on osmolarity). MEASURED: their second-order neurons
+            # (GNG229, GNG175) fire but are GABAergic by label, and no excitatory route
+            # reaches the proboscis motor neurons - water -> PER is DARK in this model.
+            g = b.pop["gustatory"]
+            b.drive_hz[g] = 0.0
+            b.drive_hz[g[np.isin(b.type[g].astype(str), b.TASTE_WATER)]] = b.p.max_rate_hz * self.water_gain
+        elif touch is not None:
+            b.taste(-1.0)
         if len(self.thermo) and temp_err > 0:
             b.drive_hz[self.thermo] = 200.0 * min(1.0, temp_err / 12.0)
         for t in b._da_by_type:
@@ -250,6 +260,7 @@ class BoxBrain:
         hunger = drives["hunger"]
         self.fed_level = 1.0 - hunger
         self.taste_gain = 0.5 + 0.5 * hunger
+        self.water_gain = min(1.0, 0.2 + 0.8 * drives["thirst"])
         smell = ({k: self.strength * v for k, v in left.items()},
                  {k: self.strength * v for k, v in right.items()})
         L, R, leg, esc, mb, feed = self._run(0.0, 0.0, smell, self.steps, reinforce, touch, temp_err)
@@ -288,6 +299,7 @@ class Box:
         self.stats = {"ate": 0, "drank": 0, "hurt": 0, "sheltered": 0, "escapes": 0}
         self.zone_ticks = {k: 0 for k in World.KINDS}
         self.feeding = False
+        self.drinking = False
         self.out_dir = a.out_dir
         os.makedirs(self.out_dir, exist_ok=True)
         self.logf = open(os.path.join(self.out_dir, "events.jsonl"), "a")
@@ -320,14 +332,19 @@ class Box:
         reinforce = None
         if touch == "hazard":
             reinforce = "PPL105"
-        elif touch in ("food", "water") and self.feeding:
+        elif (touch == "food" and self.feeding) or (touch == "water" and getattr(self, "drinking", False)):
             reinforce = "PAM08"      # reward while the proboscis is actually feeding
 
         cmd = br.tick(left, right, drives, abs(temp - 24.0), touch, reinforce)
 
         # -- act --
         leg = cmd["leg"]
-        self.feeding = touch in ("food", "water") and cmd["feed"] >= self.FEED_MN
+        self.feeding = touch == "food" and cmd["feed"] >= self.FEED_MN
+        # DRINKING IS IMPOSED: water -> proboscis is dark in the model (see BoxBrain._run),
+        # so uptake happens on contact while stationary, gated by thirst (no drinking when
+        # sated). Eating is derived from the proboscis motor neurons. Labelled here and in
+        # FINDINGS so it is never mistaken for a connectome result.
+        self.drinking = touch == "water" and leg < self.LEG_STOP and drives["thirst"] > 0.1
         bd.stopped = leg < self.LEG_STOP or self.feeding
         speed = 0.0 if bd.stopped else min(1.0, max(0.0, (leg - self.LEG_STOP) / (self.LEG_MAX - self.LEG_STOP)))
         jump = cmd["escape"] > 0
@@ -345,7 +362,7 @@ class Box:
         ev = []
         if touch == "food" and self.feeding and th.amount > 0:
             bd.energy = min(1.0, bd.energy + 0.05); th.amount -= 0.05; self.stats["ate"] += 1; ev.append("ate")
-        elif touch == "water" and self.feeding and th.amount > 0:
+        elif touch == "water" and self.drinking and th.amount > 0:
             bd.water = min(1.0, bd.water + 0.06); th.amount -= 0.05; self.stats["drank"] += 1; ev.append("drank")
         elif touch == "hazard":
             bd.energy -= 0.03; bd.warmth = min(1.0, bd.warmth + 0.02); self.stats["hurt"] += 1; ev.append("hurt")
@@ -430,7 +447,11 @@ def main():
             tmp = state_path + ".tmp"
             with open(tmp, "w") as f:
                 json.dump(st, f)
-            os.replace(tmp, state_path)
+            for _ in range(5):                  # OneDrive locks files while syncing
+                try:
+                    os.replace(tmp, state_path); break
+                except PermissionError:
+                    time.sleep(0.05)
         if box.tick_n % 40 == 0:
             bd = box.body
             log(f"  life {box.life} t={box.tick_n*TICK_MS/1000:6.1f}s pos=({bd.x:5.1f},{bd.y:5.1f}) "
