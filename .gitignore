@@ -1,11 +1,15 @@
 # raw connectome (1.1 GB, download from https://male-cns.janelia.org/download/)
-data/
-# built graphs and creature files (rebuild with scripts/build_creature.py)
+# the 14 MB annotations file IS committed: motormap needs it for neuromeres
+data/*
+!data/body-annotations-male-cns-v1.0-minconf-0.5.feather
+# built graphs (rebuild with scripts/build_creature.py)
 graphs/
-*.npz
+brain_whole.npz
+# brain_mirrored.npz IS committed (45 MB) so GitHub Actions can run experiments
 # scratch
 __pycache__/
 *.pyc
 *.bak
 .qodo/
 scripts/results/
+results/box_smoke/

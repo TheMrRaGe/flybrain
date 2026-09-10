@@ -1,0 +1,39 @@
+name: experiment
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "script in scripts/ to run (e.g. learned_dn.py)"
+        required: true
+      args:
+        description: "arguments"
+        required: false
+        default: ""
+      label:
+        description: "short label for the results commit"
+        required: false
+        default: "run"
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy scipy pyarrow
+      - name: run
+        working-directory: scripts
+        run: |
+          python ${{ inputs.script }} ${{ inputs.args }} 2>&1 | tee ../results/actions_${{ inputs.label }}.log
+      - name: commit results
+        run: |
+          git config user.name "flybrain-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add results
+          git commit -m "actions: ${{ inputs.label }} — ${{ inputs.script }} ${{ inputs.args }}" || echo "nothing to commit"
+          git pull --rebase
+          git push
+      - name: summary
+        run: tail -25 results/actions_${{ inputs.label }}.log >> $GITHUB_STEP_SUMMARY
