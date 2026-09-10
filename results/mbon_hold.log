@@ -1,0 +1,32 @@
+
+== mbon_hold_frac 0.0 ==
+  rest  MBON      0 spk (  0.0 Hz/cell,  0 types)  principal {'MBON05': 0, 'MBON13': 0, 'MBON18': 0, 'MBON21': 0, 'MBON11': 0, 'MBON09': 0}  core A    0 P    0   DNa     0  KC act    0  brain       0
+  CS+   MBON    264 spk (  3.4 Hz/cell,  9 types)  principal {'MBON05': 0, 'MBON13': 4, 'MBON18': 0, 'MBON21': 0, 'MBON11': 34, 'MBON09': 160}  core A    4 P    0   DNa   419  KC act  193  brain  156426
+  CS-   MBON    482 spk (  6.2 Hz/cell,  8 types)  principal {'MBON05': 4, 'MBON13': 0, 'MBON18': 0, 'MBON21': 0, 'MBON11': 37, 'MBON09': 149}  core A    0 P    4   DNa   151  KC act  216  brain  107723
+  core d: PPL105 1.0   PAM08 -1.0   (12s)
+
+== mbon_hold_frac 0.5 ==
+  rest  MBON      0 spk (  0.0 Hz/cell,  0 types)  principal {'MBON05': 0, 'MBON13': 0, 'MBON18': 0, 'MBON21': 0, 'MBON11': 0, 'MBON09': 0}  core A    0 P    0   DNa     0  KC act    0  brain       0
+  CS+   MBON    450 spk (  5.8 Hz/cell, 17 types)  principal {'MBON05': 7, 'MBON13': 31, 'MBON18': 0, 'MBON21': 0, 'MBON11': 49, 'MBON09': 193}  core A   31 P    7   DNa   473  KC act  191  brain  154197
+  CS-   MBON    900 spk ( 11.6 Hz/cell, 13 types)  principal {'MBON05': 17, 'MBON13': 30, 'MBON18': 0, 'MBON21': 0, 'MBON11': 54, 'MBON09': 186}  core A   30 P   17   DNa    10  KC act  219  brain   89749
+  core d: PPL105 0.01639344262295082   PAM08 -0.4166666666666667   (12s)
+
+== mbon_hold_frac 0.7 ==
+  rest  MBON      0 spk (  0.0 Hz/cell,  0 types)  principal {'MBON05': 0, 'MBON13': 0, 'MBON18': 0, 'MBON21': 0, 'MBON11': 0, 'MBON09': 0}  core A    0 P    0   DNa     0  KC act    0  brain       0
+  CS+   MBON    606 spk (  7.8 Hz/cell, 21 types)  principal {'MBON05': 11, 'MBON13': 46, 'MBON18': 0, 'MBON21': 0, 'MBON11': 54, 'MBON09': 209}  core A   46 P   11   DNa   446  KC act  193  brain  156855
+  CS-   MBON   1078 spk ( 13.9 Hz/cell, 16 types)  principal {'MBON05': 20, 'MBON13': 41, 'MBON18': 0, 'MBON21': 0, 'MBON11': 61, 'MBON09': 198}  core A   41 P   20   DNa     4  KC act  224  brain   91059
+  core d: PPL105 0.05747126436781609   PAM08 -0.2903225806451613   (12s)
+
+== mbon_hold_frac 0.85 ==
+  rest  MBON    261 spk (  3.4 Hz/cell, 33 types)  principal {'MBON05': 1, 'MBON13': 2, 'MBON18': 1, 'MBON21': 0, 'MBON11': 1, 'MBON09': 8}  core A    6 P    1   DNa   383  KC act    0  brain   55226
+  CS+   MBON    771 spk (  9.9 Hz/cell, 23 types)  principal {'MBON05': 15, 'MBON13': 50, 'MBON18': 0, 'MBON21': 0, 'MBON11': 58, 'MBON09': 214}  core A   50 P   15   DNa   494  KC act  190  brain  161195
+  CS-   MBON   1357 spk ( 17.5 Hz/cell, 18 types)  principal {'MBON05': 25, 'MBON13': 53, 'MBON18': 0, 'MBON21': 0, 'MBON11': 61, 'MBON09': 206}  core A   53 P   25   DNa     8  KC act  226  brain   91334
+  core d: PPL105 -0.02912621359223301   PAM08 -0.25   (13s)
+
+== mbon_hold_frac 0.95 ==
+  rest  MBON    600 spk (  7.7 Hz/cell, 37 types)  principal {'MBON05': 6, 'MBON13': 5, 'MBON18': 2, 'MBON21': 1, 'MBON11': 1, 'MBON09': 14}  core A   13 P    7   DNa   441  KC act    2  brain   69572
+  CS+   MBON    957 spk ( 12.3 Hz/cell, 27 types)  principal {'MBON05': 18, 'MBON13': 53, 'MBON18': 0, 'MBON21': 0, 'MBON11': 57, 'MBON09': 223}  core A   53 P   18   DNa   371  KC act  191  brain  159545
+  CS-   MBON   1489 spk ( 19.2 Hz/cell, 19 types)  principal {'MBON05': 23, 'MBON13': 54, 'MBON18': 0, 'MBON21': 0, 'MBON11': 63, 'MBON09': 210}  core A   54 P   23   DNa    10  KC act  225  brain   99523
+  core d: PPL105 -0.009345794392523364   PAM08 -0.12195121951219512   (14s)
+
+wrote ../results/mbon_hold.json

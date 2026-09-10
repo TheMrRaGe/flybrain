@@ -111,6 +111,15 @@ class Params:
     #   result. With the 151 cells re-signed: 1 of 53 glomeruli hot, own share 1.00,
     #   the two odours share ZERO Kenyon cells. Pass sign_override=() to see the raw
     #   table's behaviour.
+    mbon_hold_frac: float = 0.0    # tonic drive on MBONs as a fraction of threshold.
+    #   DESIGN DECISION 14 - the output layer needs the tonic excitation it has in
+    #   life. MEASURED with the antennal lobe and APL fixed: the principal MBONs of
+    #   both taught compartments (MBON05/13/18/21) fire 0-4 spikes per 800 ms odour,
+    #   each silenced by real inhibition (LHCENT, APL, MBON09) that in the animal is
+    #   balanced by baseline drive the 0 Hz-rest model lacks. The cells that DID fire
+    #   were strays receiving ~2% of their compartment's dopamine. Same family as the
+    #   photoreceptor fix (lamina_hold_frac), one layer further out. Value measured by
+    #   mbon_hold.py; 0.0 reproduces the runs before 10 Sept 2026.
     kc_kc_scale: float = 1.0       # DIAGNOSTIC: scale KC->KC synapses. 1.0 is the
                                    # connectome. Measured: KC->KC excitatory weight is
                                    # 55% of the PN input to KCs, and 24% of KCs get more
@@ -313,6 +322,9 @@ class FlyBrain:
         self._noise_step = int(self.N * 0.61803) | 1     # stride, coprime-ish to pool
         self.v_th = np.full(self.N, self.p.v_thresh, dtype=np.float32)
         self.v_th[self._kc] *= self.p.kc_thresh_scale
+        if self.p.mbon_hold_frac:
+            mb = self.pop["MBON"]
+            self._ext[mb] = (self.p.mbon_hold_frac * self.v_th[mb]).astype(np.float32)
 
         # DESIGN DECISION 11 - per-Kenyon-cell threshold normalisation.
         # A uniform threshold means the KCs with the largest total excitatory input

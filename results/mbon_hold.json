@@ -1,0 +1,330 @@
+{
+  "core_cut": 0.2,
+  "rows": [
+    {
+      "frac": 0.0,
+      "rest": {
+        "mbon_spikes": 0.0,
+        "mbon_hz_per_cell": 0.0,
+        "types_active": 0,
+        "principal": {
+          "MBON05": 0,
+          "MBON13": 0,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 0,
+          "MBON09": 0
+        },
+        "core": {
+          "PPL105": 0,
+          "PAM08": 0
+        },
+        "dna_spikes": 0.0,
+        "kc_active": 0,
+        "brain_spikes": 0.0
+      },
+      "CS+": {
+        "mbon_spikes": 264.0,
+        "mbon_hz_per_cell": 3.402061855670103,
+        "types_active": 9,
+        "principal": {
+          "MBON05": 0,
+          "MBON13": 4,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 34,
+          "MBON09": 160
+        },
+        "core": {
+          "PPL105": 4,
+          "PAM08": 0
+        },
+        "dna_spikes": 419.0,
+        "kc_active": 193,
+        "brain_spikes": 156426.0
+      },
+      "CS-": {
+        "mbon_spikes": 482.0,
+        "mbon_hz_per_cell": 6.211340206185567,
+        "types_active": 8,
+        "principal": {
+          "MBON05": 4,
+          "MBON13": 0,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 37,
+          "MBON09": 149
+        },
+        "core": {
+          "PPL105": 0,
+          "PAM08": 4
+        },
+        "dna_spikes": 151.0,
+        "kc_active": 216,
+        "brain_spikes": 107723.0
+      },
+      "d_core_PPL105": 1.0,
+      "d_core_PAM08": -1.0
+    },
+    {
+      "frac": 0.5,
+      "rest": {
+        "mbon_spikes": 0.0,
+        "mbon_hz_per_cell": 0.0,
+        "types_active": 0,
+        "principal": {
+          "MBON05": 0,
+          "MBON13": 0,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 0,
+          "MBON09": 0
+        },
+        "core": {
+          "PPL105": 0,
+          "PAM08": 0
+        },
+        "dna_spikes": 0.0,
+        "kc_active": 0,
+        "brain_spikes": 0.0
+      },
+      "CS+": {
+        "mbon_spikes": 450.0,
+        "mbon_hz_per_cell": 5.798969072164948,
+        "types_active": 17,
+        "principal": {
+          "MBON05": 7,
+          "MBON13": 31,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 49,
+          "MBON09": 193
+        },
+        "core": {
+          "PPL105": 31,
+          "PAM08": 7
+        },
+        "dna_spikes": 473.0,
+        "kc_active": 191,
+        "brain_spikes": 154197.0
+      },
+      "CS-": {
+        "mbon_spikes": 900.0,
+        "mbon_hz_per_cell": 11.597938144329897,
+        "types_active": 13,
+        "principal": {
+          "MBON05": 17,
+          "MBON13": 30,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 54,
+          "MBON09": 186
+        },
+        "core": {
+          "PPL105": 30,
+          "PAM08": 17
+        },
+        "dna_spikes": 10.0,
+        "kc_active": 219,
+        "brain_spikes": 89749.0
+      },
+      "d_core_PPL105": 0.01639344262295082,
+      "d_core_PAM08": -0.4166666666666667
+    },
+    {
+      "frac": 0.7,
+      "rest": {
+        "mbon_spikes": 0.0,
+        "mbon_hz_per_cell": 0.0,
+        "types_active": 0,
+        "principal": {
+          "MBON05": 0,
+          "MBON13": 0,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 0,
+          "MBON09": 0
+        },
+        "core": {
+          "PPL105": 0,
+          "PAM08": 0
+        },
+        "dna_spikes": 0.0,
+        "kc_active": 0,
+        "brain_spikes": 0.0
+      },
+      "CS+": {
+        "mbon_spikes": 606.0,
+        "mbon_hz_per_cell": 7.809278350515464,
+        "types_active": 21,
+        "principal": {
+          "MBON05": 11,
+          "MBON13": 46,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 54,
+          "MBON09": 209
+        },
+        "core": {
+          "PPL105": 46,
+          "PAM08": 11
+        },
+        "dna_spikes": 446.0,
+        "kc_active": 193,
+        "brain_spikes": 156855.0
+      },
+      "CS-": {
+        "mbon_spikes": 1078.0,
+        "mbon_hz_per_cell": 13.891752577319586,
+        "types_active": 16,
+        "principal": {
+          "MBON05": 20,
+          "MBON13": 41,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 61,
+          "MBON09": 198
+        },
+        "core": {
+          "PPL105": 41,
+          "PAM08": 20
+        },
+        "dna_spikes": 4.0,
+        "kc_active": 224,
+        "brain_spikes": 91059.0
+      },
+      "d_core_PPL105": 0.05747126436781609,
+      "d_core_PAM08": -0.2903225806451613
+    },
+    {
+      "frac": 0.85,
+      "rest": {
+        "mbon_spikes": 261.0,
+        "mbon_hz_per_cell": 3.36340206185567,
+        "types_active": 33,
+        "principal": {
+          "MBON05": 1,
+          "MBON13": 2,
+          "MBON18": 1,
+          "MBON21": 0,
+          "MBON11": 1,
+          "MBON09": 8
+        },
+        "core": {
+          "PPL105": 6,
+          "PAM08": 1
+        },
+        "dna_spikes": 383.0,
+        "kc_active": 0,
+        "brain_spikes": 55226.0
+      },
+      "CS+": {
+        "mbon_spikes": 771.0,
+        "mbon_hz_per_cell": 9.935567010309278,
+        "types_active": 23,
+        "principal": {
+          "MBON05": 15,
+          "MBON13": 50,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 58,
+          "MBON09": 214
+        },
+        "core": {
+          "PPL105": 50,
+          "PAM08": 15
+        },
+        "dna_spikes": 494.0,
+        "kc_active": 190,
+        "brain_spikes": 161195.0
+      },
+      "CS-": {
+        "mbon_spikes": 1357.0,
+        "mbon_hz_per_cell": 17.487113402061855,
+        "types_active": 18,
+        "principal": {
+          "MBON05": 25,
+          "MBON13": 53,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 61,
+          "MBON09": 206
+        },
+        "core": {
+          "PPL105": 53,
+          "PAM08": 25
+        },
+        "dna_spikes": 8.0,
+        "kc_active": 226,
+        "brain_spikes": 91334.0
+      },
+      "d_core_PPL105": -0.02912621359223301,
+      "d_core_PAM08": -0.25
+    },
+    {
+      "frac": 0.95,
+      "rest": {
+        "mbon_spikes": 600.0,
+        "mbon_hz_per_cell": 7.731958762886598,
+        "types_active": 37,
+        "principal": {
+          "MBON05": 6,
+          "MBON13": 5,
+          "MBON18": 2,
+          "MBON21": 1,
+          "MBON11": 1,
+          "MBON09": 14
+        },
+        "core": {
+          "PPL105": 13,
+          "PAM08": 7
+        },
+        "dna_spikes": 441.0,
+        "kc_active": 2,
+        "brain_spikes": 69572.0
+      },
+      "CS+": {
+        "mbon_spikes": 957.0,
+        "mbon_hz_per_cell": 12.332474226804123,
+        "types_active": 27,
+        "principal": {
+          "MBON05": 18,
+          "MBON13": 53,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 57,
+          "MBON09": 223
+        },
+        "core": {
+          "PPL105": 53,
+          "PAM08": 18
+        },
+        "dna_spikes": 371.0,
+        "kc_active": 191,
+        "brain_spikes": 159545.0
+      },
+      "CS-": {
+        "mbon_spikes": 1489.0,
+        "mbon_hz_per_cell": 19.188144329896907,
+        "types_active": 19,
+        "principal": {
+          "MBON05": 23,
+          "MBON13": 54,
+          "MBON18": 0,
+          "MBON21": 0,
+          "MBON11": 63,
+          "MBON09": 210
+        },
+        "core": {
+          "PPL105": 54,
+          "PAM08": 23
+        },
+        "dna_spikes": 10.0,
+        "kc_active": 225,
+        "brain_spikes": 99523.0
+      },
+      "d_core_PPL105": -0.009345794392523364,
+      "d_core_PAM08": -0.12195121951219512
+    }
+  ]
+}
