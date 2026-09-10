@@ -1388,3 +1388,20 @@ DopEcR is required in these sensory neurons ... a single dopaminergic neuron
 0.5 + 0.5 x hunger. Hugin-AstA as a central energy sensor regulating sweet
 sensation (eLife 2025) is consistent with AstA1 being the one hunger cell that
 transmits here.
+
+## Field survey, 10 Sept 2026 (see cross-reference section for the papers)
+
+Open-source models on FlyWire / MaleCNS: fly-brain-minecraft (MaleCNS, Shiu LIF, KC
+gain 0.25 as a sparsity hack, **"antennal lobe saturates under odor"** - they paint
+visual signals onto LC4/LPLC2 and use a reflex layer for food; no plasticity),
+desktop-fly (817 stars; 668-neuron FlyWire circuit + MaleCNS VNC; same DN map as
+ours; no learning; honest that tests do not show agreement with real locomotion),
+snedea/flybrain (browser LIF, no validation), eonsystemspbc/fly-brain (Shiu LIF on
+six GPU backends, no senses), lixiang1076/fly-brain (KC->MBON "dopamine learning",
+no controls or reversal), Loihi 2 neuromorphic (arXiv 2508.16792), FlyGM (trained
+GNN controller, arXiv 2602.17997), Fly64 (MaleCNS -> Mario 64, same DN choices).
+
+None has controlled associative learning; none reads motor neurons; all assign
+glutamate inhibitory and drop "unclear" cells, so all share the silent peptidergic
+/ DNd02 problem. The antennal-lobe saturation is independently reported, which is
+evidence for the FlyEM note that it is the transmitter table, not us.

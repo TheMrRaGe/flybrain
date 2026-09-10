@@ -15,3 +15,28 @@ loading ../brain_mirrored.npz ...
   life 1 t=  60.0s pos=(  5.6, 23.8) e=0.66 w=0.88 c=1.00 leg= 432 walk night ate 0 drank 0 hurt 4  w 99.45%
   life 1 t=  66.0s pos=(  1.4, 31.5) e=0.63 w=0.87 c=0.97 leg= 666 walk night ate 0 drank 0 hurt 4  w 99.30%
   life 1 t=  72.0s pos=(  7.8, 33.5) e=0.61 w=0.86 c=0.94 leg= 742 walk night ate 0 drank 0 hurt 4  w 99.19%
+  life 1 t=  78.0s pos=(-14.7, 33.1) e=0.59 w=0.84 c=0.90 leg= 644 walk night ate 0 drank 0 hurt 4  w 99.17%
+  life 1 t=  84.0s pos=(-20.6, 27.2) e=0.56 w=0.83 c=0.87 leg= 650 walk night ate 0 drank 0 hurt 4  w 99.14%
+  life 1 t=  90.0s pos=(-12.3, 26.6) e=0.54 w=0.82 c=0.84 leg= 682 walk night ate 0 drank 0 hurt 4  w 99.13%
+  life 1 t=  96.0s pos=( -1.1, 15.4) e=0.51 w=0.81 c=0.81 leg= 629 walk night ate 0 drank 0 hurt 4  w 99.11%
+  life 1 t= 102.0s pos=(  4.9, 26.4) e=0.49 w=0.80 c=0.78 leg= 668 walk night ate 0 drank 0 hurt 4  w 99.09%
+  life 1 t= 108.0s pos=(  7.8, 31.5) e=0.47 w=0.78 c=0.74 leg= 720 walk night ate 0 drank 0 hurt 4  w 99.04%
+  life 1 t= 114.0s pos=( -0.2, 24.6) e=0.44 w=0.77 c=0.71 leg= 658 walk night ate 0 drank 0 hurt 4  w 99.01%
+  life 1 t= 120.0s pos=( -0.5, 36.2) e=0.42 w=0.76 c=0.68 leg= 741 walk day ate 0 drank 0 hurt 4  w 98.99%
+  life 1 t= 126.0s pos=(  0.3, 36.5) e=0.40 w=0.75 c=0.70 leg= 524 walk day ate 0 drank 0 hurt 4  w 98.98%
+  life 1 t= 132.0s pos=(-13.1, 36.2) e=0.37 w=0.74 c=0.73 leg= 483 walk day ate 0 drank 0 hurt 4  w 98.98%
+  life 1 t= 138.0s pos=(-17.4, 30.2) e=0.35 w=0.72 c=0.75 leg= 441 walk day ate 0 drank 0 hurt 4  w 98.97%
+  life 1 t= 144.0s pos=(-23.7, 31.4) e=0.33 w=0.71 c=0.78 leg= 523 walk day ate 0 drank 0 hurt 4  w 98.97%
+  life 1 t= 150.0s pos=(-22.0,  3.2) e=0.31 w=0.70 c=0.80 leg= 472 walk day ate 0 drank 0 hurt 4  w 98.96%
+  life 1 t= 156.0s pos=(-15.1, 14.0) e=0.29 w=0.69 c=0.82 leg= 486 walk day ate 0 drank 0 hurt 4  w 98.91%
+  life 1 t= 162.0s pos=(-11.1, 29.9) e=1.00 w=0.68 c=0.85 leg= 563 feed day ate 17 drank 0 hurt 4  w 98.84%
+  life 1 t= 168.0s pos=(-11.1, 29.9) e=1.00 w=0.66 c=0.87 leg= 443 feed day ate 57 drank 0 hurt 4  w 98.77%
+  life 1 t= 174.0s pos=(-27.2, 26.0) e=0.98 w=0.65 c=0.90 leg= 467 walk day ate 69 drank 0 hurt 4  w 98.75%
+  life 1 t= 180.0s pos=(-36.8,  9.2) e=0.96 w=0.64 c=0.91 leg= 486 walk night ate 69 drank 0 hurt 4  w 98.74%
+  life 1 t= 186.0s pos=(-21.6,-13.9) e=0.94 w=0.63 c=0.89 leg= 465 walk night ate 69 drank 0 hurt 4  w 98.68%
+  life 1 t= 192.0s pos=(-11.2,-11.9) e=0.92 w=0.62 c=0.85 leg= 494 walk night ate 69 drank 0 hurt 4  w 98.68%
+  life 1 t= 198.0s pos=( -8.1,  0.5) e=0.71 w=0.60 c=0.96 leg= 504 walk night ate 69 drank 0 hurt 10  w 98.54%
+  life 1 t= 204.0s pos=( -6.5,  8.0) e=0.69 w=0.59 c=0.93 leg= 484 walk night ate 69 drank 0 hurt 10  w 98.53%
+  life 1 t= 210.0s pos=(-19.7,-21.0) e=0.67 w=0.58 c=1.00 leg= 492 walk night ate 69 drank 0 hurt 10  w 98.47%
+  life 1 t= 216.0s pos=(-11.0,  1.4) e=0.65 w=0.57 c=0.97 leg= 464 walk night ate 69 drank 0 hurt 10  w 98.46%
+  life 1 t= 222.0s pos=(-16.9, 12.4) e=0.62 w=0.56 c=0.93 leg= 460 walk night ate 69 drank 0 hurt 10  w 98.45%
