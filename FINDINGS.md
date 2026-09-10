@@ -1223,3 +1223,16 @@ What changed is not the circuit or the rule: it is that the test is run where th
 odour does not saturate the pathway. At strength 1.0 the DN population sits at its
 ceiling and MBON output cannot move it; at 0.35 (PN 130 Hz, within the biological
 sustained range) it can, and the learned signal comes through.
+
+**Counterbalanced (`learned_dn_mod_swap.json`).** Odours swapped, same regime:
+corr(dS_both, dS_reversed) MBONs -0.792, **DNs -0.617**, 59 DNs reversing at |z|>3.
+The top cells are the same ones with the same sign relative to the contingency -
+DNd02 L/R (z -5.8 / -5.1), DNge069 L/R (-5.3 / -5.1), DNp56 - so they follow WHICH
+ODOUR WAS PUNISHED, not which odour it was. Two odour assignments, two hemispheres,
+paired seeds, plasticity-off control at exactly zero: the learned change at these
+descending neurons is associative by the same standard the synaptic result met.
+
+The DNa steering family is not where it lives (learned_steering3: both -0.07, sd
+0.17). The learned valence is carried by DNd02, DNge069, DNbe007, DNg33 and DNp56.
+What those neurons command in the animal is the next question, and it is a question
+about the literature, not the model.
