@@ -144,6 +144,7 @@ def main():
     ap.add_argument("--punish-mv", type=float, default=70.0)
     ap.add_argument("--rate", type=float, default=0.0003)
     ap.add_argument("--core", type=float, default=0.2)
+    ap.add_argument("--bg-hold", type=float, default=0.0, help="candidate decision 15")
     ap.add_argument("--mbon-hold", type=float, default=0.85)
     ap.add_argument("--kc-thresh", type=float, default=1.5)
     ap.add_argument("--apl-scale", type=float, default=0.1)

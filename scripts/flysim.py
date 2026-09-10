@@ -123,6 +123,12 @@ class Params:
     #   5-20 Hz), MBON05/13 responding, 23 MBON types active to an odour (was 9).
     #   MBON18/21 stay silent at any hold (LHCENT -6.5k, MBON09 -5.5k vs 7 mV).
     #   0.0 reproduces the runs before 10 Sept 2026.
+    bg_hold_frac: float = 0.0      # CANDIDATE DECISION 15 - tonic drive on EVERY central
+    #   neuron as a fraction of threshold, replacing the 0 Hz-rest convention with a
+    #   low-rate spontaneous regime. Excludes sensory spike sources and Kenyon cells
+    #   (hyperpolarised in life; their sparsity depends on it). MBON and lamina holds
+    #   override it where set. Measured by bg_hold.py before adoption; 0.0 = Shiu.
+    bg_hold_exclude: tuple = ("Kenyon_Cell",)   # classes left at 0 Hz rest
     kc_kc_scale: float = 1.0       # DIAGNOSTIC: scale KC->KC synapses. 1.0 is the
                                    # connectome. Measured: KC->KC excitatory weight is
                                    # 55% of the PN input to KCs, and 24% of KCs get more
@@ -325,6 +331,12 @@ class FlyBrain:
         self._noise_step = int(self.N * 0.61803) | 1     # stride, coprime-ish to pool
         self.v_th = np.full(self.N, self.p.v_thresh, dtype=np.float32)
         self.v_th[self._kc] *= self.p.kc_thresh_scale
+        if self.p.bg_hold_frac:
+            held = ~self.driven
+            for c in self.p.bg_hold_exclude:
+                held &= self.cls != c
+            self._bg_held = np.flatnonzero(held)
+            self._ext[held] = (self.p.bg_hold_frac * self.v_th[held]).astype(np.float32)
         if self.p.mbon_hold_frac:
             mb = self.pop["MBON"]
             self._ext[mb] = (self.p.mbon_hold_frac * self.v_th[mb]).astype(np.float32)

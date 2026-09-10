@@ -1,0 +1,37 @@
+
+== bg_hold_frac 0.0 ==
+  rest:   0.40 Hz/neuron  2nd/1st half 0.89  DN 3.0 Hz  MBON 3.5 Hz  KC active 0
+        spontaneous classes: [('MBON', 3.5), ('SEZPN', 1.4), ('DAN', 0.8)]
+  CS+:  1.24 Hz/neuron  KC active  190  core A   50 P   15  DN   6264  MBON-target cells alive 20%
+  CS-:  0.70 Hz/neuron  KC active  226  core A   53 P   25  DN    797  MBON-target cells alive 16%
+  KC jaccard 0.012   DNs differing by >5 spikes between odours: 254/1310   (18s)
+
+== bg_hold_frac 0.3 ==
+  rest:   0.51 Hz/neuron  2nd/1st half 1.71  DN 3.5 Hz  MBON 5.7 Hz  KC active 3
+        spontaneous classes: [('MBON', 5.7), ('CX', 2.6), ('SEZPN', 2.5), ('DAN', 1.5), ('ol_bilateral', 0.7), ('', 0.5)]
+  CS+:  1.56 Hz/neuron  KC active  195  core A   56 P   20  DN   6902  MBON-target cells alive 22%
+  CS-:  0.98 Hz/neuron  KC active  231  core A   50 P   18  DN   2513  MBON-target cells alive 20%
+  KC jaccard 0.012   DNs differing by >5 spikes between odours: 275/1310   (18s)
+
+== bg_hold_frac 0.5 ==
+  rest:   1.26 Hz/neuron  2nd/1st half 0.95  DN 7.5 Hz  MBON 12.0 Hz  KC active 58
+        spontaneous classes: [('SEZPN', 23.7), ('MBON', 12.0), ('DAN', 5.5), ('CX', 4.9), ('ol_bilateral', 1.6), ('', 1.3), ('ALIN', 1.0)]
+  CS+:  1.71 Hz/neuron  KC active  206  core A   55 P   16  DN   6908  MBON-target cells alive 26%
+  CS-:  1.87 Hz/neuron  KC active  221  core A   52 P   26  DN   8239  MBON-target cells alive 25%
+  KC jaccard 0.022   DNs differing by >5 spikes between odours: 278/1310   (17s)
+
+== bg_hold_frac 0.6 ==
+  rest:   1.56 Hz/neuron  2nd/1st half 0.99  DN 9.2 Hz  MBON 13.2 Hz  KC active 56
+        spontaneous classes: [('SEZPN', 29.6), ('MBON', 13.2), ('DAN', 5.9), ('CX', 5.4), ('ol_bilateral', 1.9), ('', 1.7), ('ALIN', 1.4)]
+  CS+:  1.99 Hz/neuron  KC active  221  core A   54 P   18  DN   7752  MBON-target cells alive 27%
+  CS-:  2.14 Hz/neuron  KC active  231  core A   54 P   28  DN   9434  MBON-target cells alive 26%
+  KC jaccard 0.034   DNs differing by >5 spikes between odours: 237/1310   (17s)
+
+== bg_hold_frac 0.7 ==
+  rest:   1.92 Hz/neuron  2nd/1st half 1.00  DN 10.2 Hz  MBON 13.1 Hz  KC active 58
+        spontaneous classes: [('SEZPN', 33.9), ('MBON', 13.1), ('CX', 6.1), ('DAN', 6.0), ('ALIN', 3.9), ('ol_bilateral', 2.5), ('', 2.1)]
+  CS+:  3.47 Hz/neuron  KC active  200  core A   54 P   24  DN  22820  MBON-target cells alive 24%
+  CS-:  2.40 Hz/neuron  KC active  227  core A   54 P   27  DN  10572  MBON-target cells alive 29%
+  KC jaccard 0.012   DNs differing by >5 spikes between odours: 477/1310   (18s)
+
+wrote ../results/bg_hold.json

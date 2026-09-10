@@ -1013,3 +1013,63 @@ would then need re-taking. It is a session of its own and the right next one.
 
 Cheaper first test: hold only the CX/LAL/CRE/SIP targets of the core MBONs and see
 whether the learned DN signal appears. If it does, the global version is justified.
+
+## Three fixes for the dark convergence layer, all refuted (`bg_hold.py`, `learned_dn.py`)
+
+The MB -> CX/LAL/CRE layer that carries MBON output toward the descending neurons is
+50-77% silent during an odour. Three mechanisms were tried; none opens it.
+
+**1. Global tonic drive (`bg_hold_frac`, candidate decision 15) - NOT ADOPTED.**
+Tonic current on every central neuron except sensory sources and Kenyon cells. It is
+stable and plausible at rest (0.5-0.7: 1.3-1.9 Hz/neuron brain-wide, MBONs 12-13 Hz,
+DNs 7-10 Hz, no ramping over 1.6 s, KC sparsity and overlap intact) - but the core
+MBONs' targets go from 20% alive to only 24-29%, and the learned signal at the DNs
+gets WORSE:
+
+| bg_hold | corr(dS_both, dS_reversed) MBONs | DNs |
+|---|---|---|
+| 0 | -0.684 | +0.599 |
+| 0.5 | -0.531 | +0.655 |
+| 0.7 | +0.334 | +0.981 |
+
+At 0.7 the MBON layer itself loses its reversal: spontaneous activity swamps the
+learned change. Default stays 0.0. The parameter is kept for measurement.
+
+**2. Short-term depression, global - INCOMPATIBLE with sustained odour.** With
+`enable_std()` as parameterised for habituation (U 0.08, tau 480 ms), the Kenyon code
+collapses to 1 active cell: at 200 Hz receptor drive the olfactory afferents settle at
+x = 1/(1 + U r tau) = 11% of their strength before the test window opens. This is why
+every conditioning script has STD off, and it means the habituation and olfactory
+results are currently measured on different engines.
+
+**3. Short-term depression, central only (sensory, ALPN, KC excluded) - refuted.**
+Targets alive 16-17%; DNs differing between odours fall from 254 to 46. Incidentally
+it frees the appetitive core (MBON09 -> MBON05/21 inhibition depresses; P core 15 ->
+162 spikes) - a hint that MBON09's dominance is part of the problem - but the
+convergence layer stays dark.
+
+**Why they all fail, measured.** Every top target of MBON13 and MBON05 is net-inhibited
+during the odour by 1.5-5x (LHPV5e1: E 7,790 / I -11,655 from CRE050, LHCENT2, AstA1;
+LHCENT4: E 6,468 / I -32,478; LHPV10d1: I -11,349 from mALB3; CRE077: I -7,536 from
+oviIN). The odour drives an inhibitory wave through the whole convergence zone, and a
+tonic hold of a few mV cannot beat a net -5 mV/ms. This is not a dark cell to fix;
+**it is the E/I balance of the central brain under a uniform 0.275 mV per synapse and
+transmitter-label signs** - the regime Shiu et al. said the model would simulate
+poorly, and the fourth stage in a row to hit it.
+
+### Next - the structural candidates, in order of how much they would change
+
+1. **A sublinear synapse-count -> efficacy mapping.** A 371-synapse connection
+   delivers 102 mV of conductance per spike here; real efficacy saturates with synapse
+   count. This would shrink the massive inhibitory connections (CRE050 -5,324, LHCENT9
+   -7,464) more than the many small excitatory ones. Needs the whole ladder re-run.
+2. **Glutamate sign outside the antennal lobe.** GluCl-alpha inhibition is
+   established in the AL; the central brain also has excitatory glutamate receptors.
+   Shiu et al. tested both globally. LHCENT4, MBON09, MBON05, MBON30 are all
+   glutamatergic and all sit on this pathway.
+3. **MBON09's dominance.** It fires 40-57 spikes to any odour and inhibits MBON05,
+   MBON21, MBON30 and MBON11 by thousands. Real MBON-gamma3beta'1 is not a
+   winner-take-all hub. Whether that is (1), (2) or the transmitter label is testable.
+
+The synaptic conditioning result stands. Reaching behaviour is blocked at a
+well-characterised place.

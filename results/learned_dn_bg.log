@@ -1,0 +1,10 @@
+=== bg_hold 0.5 ===
+  both      DNs with |dS| > noise+0.5 spikes: 23/1310   mean |dS| over DNs 0.724   MBON |dS| 1.963   (154s)
+  reversed  DNs with |dS| > noise+0.5 spikes: 16/1310   mean |dS| over DNs 0.600   MBON |dS| 2.421   (154s)
+  corr(dS_both, dS_reversed):  MBONs -0.531   DNs +0.655
+  DNs whose (CS+ - CS-) change reverses with the contingency (|z|>3, |diff|>1 spike): 2/1310
+=== bg_hold 0.7 ===
+  both      DNs with |dS| > noise+0.5 spikes: 9/1310   mean |dS| over DNs 2.406   MBON |dS| 2.920   (169s)
+  reversed  DNs with |dS| > noise+0.5 spikes: 11/1310   mean |dS| over DNs 2.380   MBON |dS| 3.732   (172s)
+  corr(dS_both, dS_reversed):  MBONs +0.334   DNs +0.981
+  DNs whose (CS+ - CS-) change reverses with the contingency (|z|>3, |diff|>1 spike): 1/1310

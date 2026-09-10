@@ -59,7 +59,8 @@ def log(m): print(m, flush=True)
 def build(path, args, seed=11):
     b = FlyBrain(path, Params(gain=1.0, learn_rate=args.rate,
                               kc_thresh_scale=args.kc_thresh, apl_scale=args.apl_scale,
-                              mbon_hold_frac=args.mbon_hold, noise=args.noise), seed=seed)
+                              mbon_hold_frac=args.mbon_hold, noise=args.noise,
+                              bg_hold_frac=getattr(args, "bg_hold", 0.0)), seed=seed)
     b.enable_plasticity()
     b.enable_compartments()
     # CORE MEMBERS ONLY. A DAN type's direct-synapse targets include strays at ~2% of
@@ -225,6 +226,7 @@ def main():
                     help="0.02 drove synapses at 2%% dopamine weight to the floor")
     ap.add_argument("--core", type=float, default=0.2,
                     help="dopamine-weight cut for compartment membership (0 = all)")
+    ap.add_argument("--bg-hold", type=float, default=0.0, help="candidate decision 15")
     ap.add_argument("--mbon-hold", type=float, default=0.85, help="decision 14")
     ap.add_argument("--kc-thresh", type=float, default=1.5)
     ap.add_argument("--apl-scale", type=float, default=0.1,
