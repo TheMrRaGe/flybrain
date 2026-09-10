@@ -1,0 +1,14 @@
+learned steering: train through PPL105 / PAM08, read the DNa family
+odours ../results/odours3.json, near 1.0 / far 0.4, 8 paired seeds, 12 trials
+
+  both       DNa dV +0.2078+-0.6099   [dA+ +0.0041  dA- -0.2037]   all-DN dV +0.0012   MBON dD -1.7542   (279 DNa spikes/presentation, 203s)
+  reversed   DNa dV +0.0847+-0.5149   [dA+ +0.0125  dA- -0.0721]   all-DN dV -0.0249   MBON dD +0.6992   (279 DNa spikes/presentation, 203s)
+  control    DNa dV +0.0000+-0.0000   [dA+ +0.0000  dA- +0.0000]   all-DN dV +0.0000   MBON dD +0.0000   (279 DNa spikes/presentation, 170s)
+
+  DNa  both dV +0.2078   reversed dV +0.0847   flipped NO   MWU p=0.7209  Wilcoxon p=0.3125  d'=+0.22   opposite-sign seeds 2/8
+
+  DN   both dV +0.0012   reversed dV -0.0249   flipped YES   MWU p=0.4418  Wilcoxon p=0.1484  d'=+0.45   opposite-sign seeds 2/8
+
+  NOT DEMONSTRATED at the action bus
+
+wrote ../results/learned_steering2.json

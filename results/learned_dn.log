@@ -1,0 +1,27 @@
+  both      DNs with |dS| > noise+0.5 spikes: 19/1310   mean |dS| over DNs 0.381   MBON |dS| 1.430   (138s)
+  reversed  DNs with |dS| > noise+0.5 spikes: 47/1310   mean |dS| over DNs 0.532   MBON |dS| 1.870   (139s)
+
+  corr(dS_both, dS_reversed):  MBONs -0.684   DNs +0.599
+  DNs whose (CS+ - CS-) change reverses with the contingency (|z|>3, |diff|>1 spike): 3/1310
+    DNp56        L  both   -1.50  reversed   +1.12  z   -3.5  naive S    -3.5
+    DNp18        L  both   +1.12  reversed   -4.50  z   +3.1  naive S   +13.4
+    DNge041      L  both   -0.62  reversed   +1.88  z   -3.1  naive S    -2.2
+    DNge069      L  both   -2.25  reversed   +4.62  z   -2.9  naive S    -0.1
+    DNg111       L  both   -1.12  reversed   +3.12  z   -2.6  naive S    -1.9
+    DNae010      R  both   +0.00  reversed   -5.50  z   +2.4  naive S   +24.1
+    DNa13        L  both   -1.88  reversed   -5.50  z   +2.4  naive S   +15.1
+    DNbe007      L  both   -3.25  reversed   +7.00  z   -2.4  naive S   -10.4
+    DNg04        L  both   +1.38  reversed   -0.25  z   +2.3  naive S    +0.9
+    DNd02        L  both   -1.88  reversed   +2.25  z   -2.2  naive S   +14.0
+    DNp69        R  both   -0.75  reversed   -0.12  z   -2.2  naive S    +0.0
+    DNge142      L  both   -0.88  reversed   +0.75  z   -2.2  naive S    +2.8
+    DNbe005      R  both   -0.50  reversed   +1.50  z   -2.2  naive S    +1.8
+    DNp56        R  both   -0.25  reversed   +1.62  z   -2.1  naive S    -3.9
+    DNae007      R  both   -0.50  reversed   +0.12  z   -2.1  naive S    +0.5
+    DNge069      R  both   -0.75  reversed   +4.62  z   -2.1  naive S    -1.0
+    DNg64        R  both   +0.50  reversed   -5.00  z   +2.1  naive S   +11.6
+    DNge142      R  both   -0.50  reversed   +1.00  z   -2.0  naive S    +2.9
+    DNae003      L  both   -0.38  reversed   +1.25  z   -2.0  naive S    +3.9
+    DNge107      R  both   +0.62  reversed   +1.75  z   -2.0  naive S    +0.0
+
+wrote ../results/learned_dn.json

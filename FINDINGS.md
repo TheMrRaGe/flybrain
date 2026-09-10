@@ -960,3 +960,56 @@ Caveat, unchanged: the appetitive core saturates - MBON05's CS- response goes to
 (d_P at its bound) at any learn rate tried, because it responds at a biological
 10-15 Hz with no margin above threshold. The aversive core is graded. The
 contingency-independent component (+-0.20, mirrored by the swap) is that asymmetry.
+
+## Learned steering, second attempt — still NOT DEMONSTRATED, and now it is clear why
+
+`learned_steering.py` on the fully fixed circuit (`results/learned_steering2.json`):
+both +0.21 (sd 0.61), reversed +0.08 (sd 0.51), p = 0.72; MBON dD -1.75 / +0.70 in the
+same run. Worse variance than before: the MBON hold cut the DNa response to CS- to
+~5 spikes, so the turn index for one odour is computed from nothing. The lateralised
+DNa readout is not measurable for both odours on this circuit.
+
+**Population test (`learned_dn.py`)** - per-DN change in (CS+ - CS-) response with
+training, all 1,310 DNs, both arms, paired seeds:
+
+    corr(dS_both, dS_reversed):   MBONs  -0.684     DNs  +0.599
+    DNs whose change reverses with the contingency (|z|>3, >1 spike):  3 / 1310
+
+Learning reverses across the whole MBON layer. What reaches the descending neurons
+is the SAME in both arms - a non-specific consequence of training - and 3 of 1,310 at
+|z|>3 is what chance gives. **The valence sign is lost between the MBONs and the
+action bus.**
+
+**Where the core MBONs' output goes (measured):**
+
+| cell | fires on odour | direct -> DN | 2-hop -> DN | targets alive on odour | top targets |
+|---|---|---|---|---|---|
+| MBON13 L/R | 20-30 | 0% | 0.5% | 32-35% | CRE055, SIP015, LHPV5e1, FB5AB (CX) |
+| MBON18 L/R | 0 | 0% | 0.3% | 35% | LHCENT1/9/6, LHPV5e1 |
+| MBON23 L/R | 0 | 0% | 0.1% | 23-29% | LHCENT6, PAM10 |
+| MBON05 R (L silent) | 15-25 | 0% | 0.9% | 50-52% | MBON30, LHPV7c1, CRE011, MBON11, PAM07 |
+| MBON21 L/R | 0 | 0.7% | 3.0% | 27% | FB4R (CX), CRE100, MBON26, LAL159 |
+
+No direct MBON -> DN output at all; 0.1-3% at two hops. The mushroom body reaches
+behaviour through the central complex (FB4R, FB5AB), the LAL and the CRE/SIP
+convergence neurons - the real anatomy - and **that layer is 50-77% silent** during an
+odour. The learned signal is three cells wide (MBON13 L/R, MBON05-R), feeding a
+mostly-dark layer, three or more synapses from the action bus.
+
+### Next
+
+The pattern is now unmistakable: photoreceptor targets (fixed), Kenyon cells (fixed),
+MBONs (fixed), and now the MB -> CX/LAL convergence layer - every stage past the
+first synapse is silent under the 0 Hz-rest convention until it is given the tonic
+drive it has in life. Doing this one layer at a time is whack-a-mole.
+
+**Decision 15 candidate: replace the 0 Hz rest with a low-rate spontaneous regime.**
+A background tonic drive on every neuron, sized as a fraction of threshold, so
+inhibition-dominated cells can be modulated downward and net-inhibited pathways carry
+signal. It must be MEASURED before adoption: spontaneous rate distribution against
+known values, stability (no seizure), and whether the established results (steering
+d', habituation, vision, the conditioning result above) survive. Every earlier number
+would then need re-taking. It is a session of its own and the right next one.
+
+Cheaper first test: hold only the CX/LAL/CRE/SIP targets of the core MBONs and see
+whether the learned DN signal appears. If it does, the global version is justified.
