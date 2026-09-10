@@ -890,3 +890,37 @@ Schlegel et al. 2021 https://elifesciences.org/articles/66018 ;
 MaleCNS https://male-cns.janelia.org/ ; https://github.com/funkelab/synister_malecns ;
 Huang et al. 2024 https://www.nature.com/articles/s41586-024-07819-w ;
 Li et al. 2020 MB connectome https://elifesciences.org/articles/62576
+
+## FIXED: the output layer has tonic drive (`mbon_hold_frac`, decision 14; `mbon_hold.py`)
+
+The principal MBONs were silent because the 0 Hz-rest model gives them no baseline
+excitation to set real inhibition against. `mbon_hold_frac` x threshold of tonic
+current on every MBON, the output-layer analogue of `lamina_hold_frac`. Swept, one
+seed, 800 ms per odour:
+
+| hold | resting MBON rate | MBON types active to odour | MBON13 | MBON05 | MBON18 / 21 | DNa to CS+ / CS- |
+|---|---|---|---|---|---|---|
+| 0 | 0 Hz | 9 | 4 | 0-4 | 0 | 419 / 151 |
+| 0.7 | 0 Hz | 21 | 46 | 11-20 | 0 | 446 / 4 |
+| **0.85** | **3.4 Hz, 33 types** | **23** | **50** | **15-25** | 0 | 494 / 8 |
+| 0.95 | 7.7 Hz | 27 | 53 | 18-23 | 0 | 371 / 10 |
+
+0.85 is now the default: a resting rate in the biological range (MBONs fire 5-20 Hz
+spontaneously), the principal MBONs of both taught compartments responding, and both
+core compartments giving a non-degenerate readout. **MBON18 and MBON21 stay silent at
+any hold** - 7 mV of tonic current does not beat -6.5k from LHCENT or -5.5k from
+MBON09. Recorded, not fixed.
+
+**The hold changes what the odours do at the action bus.** DNa response to CS- fell
+from 151 to ~5 spikes while CS+ stayed ~450: MBON output now shapes the descending
+response strongly and odour-specifically. The pathway learned steering needs is live
+where before the two odours barely differed at the DNs.
+
+**Core compartments and learn rate.** conditioning4 now delivers dopamine only to
+members at >= 0.2 of the type's peak (PPL105: MBON13/18/23, 6 cells; PAM08:
+MBON05/21, 4 cells) and reads the same set. At `learn_rate 0.02` and even 0.005 the
+readout saturates within 4 trials - the core MBONs sit near threshold, so a few
+percent of depression silences them outright. The appetitive core saturates at every
+rate tried (MBON05: 15-25 spikes per odour, ~10-15 Hz per cell, a biological rate
+with no margin). The aversive core is graded at 0.0003 (-0.43 in 12 trials), which is
+the new default. Saturation is the readout's dynamic range, not the learning.

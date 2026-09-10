@@ -59,9 +59,16 @@ def log(m): print(m, flush=True)
 def build(path, args, seed=11):
     b = FlyBrain(path, Params(gain=1.0, learn_rate=args.rate,
                               kc_thresh_scale=args.kc_thresh, apl_scale=args.apl_scale,
-                              noise=args.noise), seed=seed)
+                              mbon_hold_frac=args.mbon_hold, noise=args.noise), seed=seed)
     b.enable_plasticity()
     b.enable_compartments()
+    # CORE MEMBERS ONLY. A DAN type's direct-synapse targets include strays at ~2% of
+    # its peak weight (PPL105 -> MBON11: 12 synapses vs 680 onto MBON13). At the old
+    # learn rate 2% still drove those synapses to the floor and the strays carried
+    # the whole readout. Dopamine now reaches only members at >= `core` of the peak.
+    if args.core > 0:
+        for d in b._da_by_type.values():
+            d["w"] = np.where(d["w"] >= args.core, d["w"], 0.0).astype(np.float32)
     if args.odours:
         od = json.load(open(args.odours))
         X, Y = list(od["CS+"]), list(od["CS-"])
@@ -184,13 +191,18 @@ def run_arm(path, args, plastic, label, schedule):
 
     delta = post - pre                        # columns: D, d_A, d_P
     frac = float(np.mean(b._out_w[b._plastic] / np.maximum(b._w0, 1e-9)))
+    wf = b._out_w[b._plastic] / np.maximum(b._w0, 1e-9)
+    frac_a = float(wf[np.isin(b._plastic_post, ro_a)].mean())
+    frac_p = float(wf[np.isin(b._plastic_post, ro_p)].mean())
     D, dA, dP = delta[:, 0], delta[:, 1], delta[:, 2]
     log(f"  {label:<16} D {pre[:,0].mean():+.4f} -> {post[:,0].mean():+.4f}   "
         f"dD {D.mean():+.4f}+-{D.std(ddof=1):.4f}   "
         f"[d_A {dA.mean():+.4f}  d_P {dP.mean():+.4f}]   "
-        f"weights {100*frac:.1f}%   ({time.time()-t0:.0f}s)")
+        f"weights all {100*frac:.1f}% A {100*frac_a:.0f}% P {100*frac_p:.0f}%   "
+        f"({time.time()-t0:.0f}s)")
     return {"delta_D": D.tolist(), "delta_dA": dA.tolist(), "delta_dP": dP.tolist(),
             "pre": pre.tolist(), "post": post.tolist(), "weights_frac": frac,
+            "weights_frac_A": frac_a, "weights_frac_P": frac_p,
             "n_A": int(len(ro_a)), "n_P": int(len(ro_p)), "n_shared": n_shared}
 
 
@@ -209,7 +221,11 @@ def main():
                     help="tonic drive on a taught DAN type. 12.6 mV (stimulate's "
                          "ceiling) fires PPL105 0 times during an odour.")
     # the regime conditioning3's reported run actually used: a live mushroom body
-    ap.add_argument("--rate", type=float, default=0.02)
+    ap.add_argument("--rate", type=float, default=0.0003,
+                    help="0.02 drove synapses at 2%% dopamine weight to the floor")
+    ap.add_argument("--core", type=float, default=0.2,
+                    help="dopamine-weight cut for compartment membership (0 = all)")
+    ap.add_argument("--mbon-hold", type=float, default=0.85, help="decision 14")
     ap.add_argument("--kc-thresh", type=float, default=1.5)
     ap.add_argument("--apl-scale", type=float, default=0.1,
                     help="gain on the real APL neuron (decision 12); 0.1 gives ~5%% KCs")
@@ -250,7 +266,8 @@ def main():
         f"{a.punish_mv:.0f} mV DAN drive")
     log(f"odours: {a.odours or 'alphabetical'}{' (swapped)' if a.swap else ''}, "
         f"order per trial: {' then '.join(order(a))}, "
-        f"kc_thresh {a.kc_thresh}, apl_scale {a.apl_scale}\n")
+        f"kc_thresh {a.kc_thresh}, apl_scale {a.apl_scale}, mbon_hold {a.mbon_hold}, "
+        f"core {a.core}, rate {a.rate}\n")
 
     # the teaching signals must actually arrive during the odour
     b = build(a.brain, a)
@@ -272,7 +289,8 @@ def main():
     out = {"brain": a.brain, "aversive": AV, "appetitive": AP,
            "swap": a.swap, "cs_minus_first": a.cs_minus_first,
            "repeats": a.repeats, "trials": a.trials, "punish_mv": a.punish_mv,
-           "rate": a.rate, "kc_thresh": a.kc_thresh, "apl_scale": a.apl_scale,
+           "rate": a.rate, "core": a.core, "mbon_hold": a.mbon_hold,
+           "kc_thresh": a.kc_thresh, "apl_scale": a.apl_scale,
            "noise": a.noise, "odours": a.odours,
            "teaching_check": checks, "arms": {}}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
