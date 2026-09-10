@@ -59,14 +59,16 @@ def main():
     ap.add_argument("--brain", default="../brain_mirrored.npz")
     ap.add_argument("--odours", default="../results/odours3.json")
     ap.add_argument("--fracs", default="0,0.3,0.5,0.6,0.7")
+    ap.add_argument("--syn-sat", default="0", help="syn_sat_k values (candidate 1)")
     ap.add_argument("--ms", type=float, default=800.0)
     ap.add_argument("--out", default="../results/bg_hold.json")
     a = ap.parse_args()
     od = json.load(open(a.odours))
     rows = []
     for frac in [float(x) for x in a.fracs.split(",")]:
+      for sat in [float(x) for x in a.syn_sat.split(",")]:
         t0 = time.time()
-        b = FlyBrain(a.brain, Params(gain=1.0, bg_hold_frac=frac), seed=11)
+        b = FlyBrain(a.brain, Params(gain=1.0, bg_hold_frac=frac, syn_sat_k=sat), seed=11)
         b.enable_plasticity(); b.enable_compartments(); b.plastic_on = False
         for d in b._da_by_type.values():
             d["w"] = np.where(d["w"] >= 0.2, d["w"], 0.0).astype(np.float32)

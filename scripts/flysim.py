@@ -129,6 +129,17 @@ class Params:
     #   (hyperpolarised in life; their sparsity depends on it). MBON and lamina holds
     #   override it where set. Measured by bg_hold.py before adoption; 0.0 = Shiu.
     bg_hold_exclude: tuple = ("Kenyon_Cell",)   # classes left at 0 Hz rest
+    syn_sat_k: float = 0.0         # CANDIDATE - saturating synapse-count -> efficacy.
+    #   0 = disabled (linear, current behaviour: efficacy = synapse_count * W_syn).
+    #   >0: efficacy = synapse_count * k / (synapse_count + k), a Michaelis-Menten
+    #   compression with half-max at k synapses. MOTIVATION: the dark MB->CX/LAL
+    #   convergence layer is net-inhibited by single cell-pair connections of
+    #   100-300 synapses (whole-connectome 90th pct is 22, 99th is 81), each
+    #   delivering up to 300 x 0.275 = 82 mV per spike undamped. Real synaptic
+    #   efficacy is known to saturate with release-site count / postsynaptic
+    #   receptor density; linear scaling has no such ceiling. NOT ADOPTED - measure
+    #   with bg_hold.py-style sweep before using. Small connections (the median is
+    #   6 synapses) are left almost unchanged by design.
     kc_kc_scale: float = 1.0       # DIAGNOSTIC: scale KC->KC synapses. 1.0 is the
                                    # connectome. Measured: KC->KC excitatory weight is
                                    # 55% of the PN input to KCs, and 24% of KCs get more
@@ -266,6 +277,8 @@ class FlyBrain:
                 self.hemi_scale = 1.0
         else:
             self.hemi_scale = 1.0
+        if self.p.syn_sat_k > 0:
+            w = w * self.p.syn_sat_k / (w + self.p.syn_sat_k)
         data = self.sign[pre] * w * self.p.mv_per_synapse * self.p.gain
         if self.p.kc_kc_scale != 1.0:
             iskc = self.cls == "Kenyon_Cell"

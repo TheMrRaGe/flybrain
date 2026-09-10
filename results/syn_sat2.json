@@ -1,0 +1,72 @@
+[
+  {
+    "frac": 0.0,
+    "rest": {
+      "hz_per_neuron": 0.0027843241014786145,
+      "second_half_over_first": 1.011111111111111,
+      "dn_hz": 0.004770992366412213,
+      "mbon_hz": 2.938144329896907,
+      "kc_active": 0,
+      "classes_over_0.5hz": [
+        [
+          "MBON",
+          2.938144329896907
+        ]
+      ]
+    },
+    "CS+": {
+      "hz_per_neuron": 0.9499698493080724,
+      "kc_active": 123,
+      "core_A": 29,
+      "core_P": 19,
+      "dn_spikes": 4534.0,
+      "targets_alive": 0.11456752655538695
+    },
+    "CS-": {
+      "hz_per_neuron": 0.5380129463379215,
+      "kc_active": 124,
+      "core_A": 26,
+      "core_P": 22,
+      "dn_spikes": 127.0,
+      "targets_alive": 0.09559939301972686
+    },
+    "kc_jaccard": 0.01646090534979424,
+    "dn_diff_l1": 4555.0,
+    "dn_diff_cells": 190
+  },
+  {
+    "frac": 0.0,
+    "rest": {
+      "hz_per_neuron": 0.00413033713396137,
+      "second_half_over_first": 1.0653846153846154,
+      "dn_hz": 0.012404580152671756,
+      "mbon_hz": 3.1572164948453607,
+      "kc_active": 0,
+      "classes_over_0.5hz": [
+        [
+          "MBON",
+          3.1572164948453607
+        ]
+      ]
+    },
+    "CS+": {
+      "hz_per_neuron": 1.0949931391792858,
+      "kc_active": 153,
+      "core_A": 38,
+      "core_P": 32,
+      "dn_spikes": 5482.0,
+      "targets_alive": 0.1433990895295903
+    },
+    "CS-": {
+      "hz_per_neuron": 0.620396635428909,
+      "kc_active": 166,
+      "core_A": 35,
+      "core_P": 33,
+      "dn_spikes": 554.0,
+      "targets_alive": 0.13732928679817905
+    },
+    "kc_jaccard": 0.012698412698412698,
+    "dn_diff_l1": 5324.0,
+    "dn_diff_cells": 213
+  }
+]

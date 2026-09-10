@@ -1073,3 +1073,67 @@ poorly, and the fourth stage in a row to hit it.
 
 The synaptic conditioning result stands. Reaching behaviour is blocked at a
 well-characterised place.
+
+## Fourth fix refuted: synapse-count saturation (`syn_sat_k`) — and glutamate-sign flip ruled out without running it
+
+**Global excitatory glutamate is not a live candidate.** Shiu et al. 2024 already ran
+this experiment brainwide: switching their default (inhibitory) to excitatory
+"eliminates" a confirmed result (bitter/Ir94e sign) and raises the optogenetic
+false-positive rate from 1% to 16%. They state plainly: "it is not feasible to predict
+whether a particular glutamatergic connection is excitatory or inhibitory at a
+brainwide scale." A blanket flip is worse by their own measurement; a targeted,
+cell-type-specific flip (the lLN1/lLN2 precedent) would need per-type evidence of
+excitatory glutamate receptor expression that does not exist for MBON05/MBON30/LHCENT4
+specifically - central-brain iGluRs are documented (AMPA/NMDA-like, Frontiers 2020;
+mGluRs in KCs), but that motivates neither sign for these particular cells. Not
+attempted.
+
+**Synapse-count saturation, tested and refuted.** `syn_sat_k`: efficacy =
+synapse_count * k/(synapse_count + k), motivated by the top offenders in the dark
+layer being 100-300 synapse individual connections (whole-connectome 90th percentile
+is 22, 99th is 81) delivering up to ~82 mV/spike undamped. Swept k = 30, 60, 120, 300,
+600 against the standard diagnostics (bg_hold=0 baseline: KC active 190-226, MBON
+targets alive 16-20%, 254 DNs differing >5 spikes between odours):
+
+| k | KC active (CS+) | MBON-target alive | DNs differing |
+|---|---|---|---|
+| none (linear) | 190 | 20% | 254 |
+| 600 | 153 | 14% | 213 |
+| 300 | 123 | 11% | 190 |
+| 120 | 62 | 6% | 33 |
+| 60 | 14 | 5% | 11 |
+| 30 | 2 | 4% | 1 |
+
+**Monotonically worse at every k tried, never better.** The compression is not
+selective for the pathological large inhibitory connections; it hits the strong
+excitatory connections the sparse code and the whole network's drive depend on just
+as hard, and the network quiets globally rather than rebalancing. Rest DN rate drops
+to 0 Hz at every k >= 30 (was 3.0 Hz at k=0). Not adopted; parameter kept, default
+0 (disabled).
+
+### Status
+
+Four candidates for the dark MB->CX/LAL layer are now refuted (background hold,
+global STD, central-only STD, synapse saturation) and one (glutamate sign) is ruled
+out by the reference paper's own experiment. None is a quick parameter fix. What is
+left is architectural, not parametric - the two live candidates are:
+
+1. **A real graded/non-spiking treatment for the AL-and-lateral-horn interneuron
+   population** (the way APL is already handled as a rate, not a spiking LIF cell -
+   decision 12). LHCENT, CRE, SIP, mALB cells might be the same category: local,
+   possibly non-spiking, and mis-modelled as ordinary spiking neurons drives their
+   inhibition far past what the real graded cell would deliver at saturation.
+2. **Per-hemilineage neurotransmitter re-evaluation** at the ambiguous types Eckstein
+   et al. flagged, the way lLN1/lLN2 was - but for LHCENT/CRE/mALB types, which would
+   need the same 45-of-53-glomeruli-style functional test as decision 13, one type at
+   a time, and there is no shortcut to it.
+
+Both are substantially larger investigations than anything tried today and deserve a
+session of their own with a full re-validation plan, not a bolt-on parameter.
+
+**Recommendation:** treat the compartment-specific associative conditioning result
+(measured this session) as complete and reportable on its own terms - synaptic
+learning that is associative, reversible, and anatomically compartment-specific in a
+whole-CNS connectome model, with the finding that it does not (yet) reach descending
+behaviour clearly diagnosed and localised. Reaching behaviour is now a separate,
+scoped research question, not a bug to patch.
