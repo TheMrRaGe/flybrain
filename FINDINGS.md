@@ -1305,3 +1305,16 @@ the answer was to stop driving the network into it.
 
 Counterbalanced at the DN level (odours swapped: DNs -0.617, same cells); motor-level
 swap in `learned_motor_swap.json`.
+
+**Counterbalanced at the muscles (`learned_motor_swap.json`).** Odours swapped:
+MBONs -0.792, DNs -0.617, **motor neurons -0.628**, 30 reversing at |z|>3. Same sign
+relative to the contingency, same category - the punished odour drives more wing
+and leg motor output - with the particular muscles shifting from wing power
+(DLMn/DVMn) to wing steering (b1 L/R, b2 L/R, tp1) and leg rotators (sternal
+posterior rotator, pleural remotor, Tr flexor) under the other assignment. The
+category and the sign follow the contingency; which muscles is odour identity.
+
+That completes the standard the synaptic result was held to, at every layer the
+model can read: two odour assignments, two hemispheres, paired seeds,
+plasticity-off control at exactly zero, sign reversal with the contingency -
+at the MBONs, at the descending neurons, and at the motor neurons.
