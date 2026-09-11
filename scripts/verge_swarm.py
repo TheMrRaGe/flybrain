@@ -143,7 +143,7 @@ class Soul:
         self.prev = None                     # previous (satiety, hydration, warmth, health)
         self.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
                      "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0}
+                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0, "bumps": 0}
         self.last_word = None
         self.crafted_ever = []
         self.prev_pack = None
@@ -442,6 +442,7 @@ class VergeSwarm:
             if s.heard[3] == 0 and s.heard[1] is not None and s.heard[1].x is not None:
                 d1 = math.hypot(s.heard[1].x - x, s.heard[1].y - y) / TILE
                 key = "approach" if d1 < s.heard[2] - 0.5 else "avoid" if d1 > s.heard[2] + 0.5 else None
+                if abs(d1 - s.heard[2]) > 6.0: key = None                       # a respawn, not a walk
                 if key:
                     self.word_stats[s.heard[0]][key] += 1
                     self.note(s, key, {"word": s.heard[0], "from": s.heard[1].name, "d0": s.heard[2], "d1": d1})
@@ -527,6 +528,18 @@ class VergeSwarm:
                     d, px, py = min(thr)
                     s.heading = math.atan2(c["y"] - py, c["x"] - px)
             s.heading += evidence * 0.5
+            # a wall: the body did not move though the legs were driving. Real flies
+            # feel that on the leg and head bristles and turn away; here the bristles on
+            # both sides are driven for the next decision and the heading is turned
+            # ~120 degrees plus noise (the reflex itself is an interface choice, labelled).
+            # Without it three flies spent a run pressed into the map corner, singing.
+            pi = s.intent
+            if pi is not None and pi.get("speed", 0) > 0.3 and s.x is not None and getattr(s, "px", None) is not None:
+                if math.hypot(s.x - s.px, s.y - s.py) < 0.05 * TILE:
+                    s.heading += 2.1 + float(np.random.default_rng(s.decisions).uniform(-0.6, 0.6))
+                    sw.drive_hz[f, self.touch["L"]] = 150.0; sw.drive_hz[f, self.touch["R"]] = 150.0
+                    s.life["bumps"] += 1
+            s.px, s.py = s.x, s.y
             # speed from leg motor drive: rest ~262 -> 0.34, odour ~490 -> 0.9, stop < 130
             speed = 0.0 if leg < 130.0 else min(1.0, (leg - 130.0) / 390.0)
             if esc: speed = 1.0
@@ -714,7 +727,8 @@ class VergeSwarm:
         s.lives += 1
         s.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
                   "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                  "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0}
+                  "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0, "bumps": 0}
+        s.px = s.py = None
         s.words_out = {}; s.heard = None; s.heard_word = None; s.last_word = None
         s.alarm_until = 0.0; s.flick_until = 0.0; s.singing = False; s.court_target = None
         s.hears = False; s.touching = None; s.x = s.y = None
