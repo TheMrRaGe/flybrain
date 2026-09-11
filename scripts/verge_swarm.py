@@ -550,9 +550,9 @@ class VergeSwarm:
                     s.life["bumps"] += 1
             if s.x is not None:
                 ex = s.x / TILE; ey = s.y / TILE
-                out = ((ex < 1.5 and math.cos(s.heading) < 0) or (ex > WORLD_W - 1.5 and math.cos(s.heading) > 0)
-                       or (ey < 1.5 and math.sin(s.heading) < 0) or (ey > WORLD_H - 1.5 and math.sin(s.heading) > 0))
-                if out:                                                   # sliding along the edge counts as a wall too
+                outward = ((ex < 1.5 and math.cos(s.heading) < 0) or (ex > WORLD_W - 1.5 and math.cos(s.heading) > 0)
+                           or (ey < 1.5 and math.sin(s.heading) < 0) or (ey > WORLD_H - 1.5 and math.sin(s.heading) > 0))
+                if outward:                                                 # sliding along the edge counts as a wall too
                     s.heading = math.atan2(WORLD_H * TILE / 2 - s.y, WORLD_W * TILE / 2 - s.x) + float(np.random.default_rng(s.decisions).uniform(-0.8, 0.8))
                     sw.drive_hz[f, self.touch["L"]] = 150.0; sw.drive_hz[f, self.touch["R"]] = 150.0
                     s.life["bumps"] += 1
