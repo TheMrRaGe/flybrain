@@ -35,7 +35,7 @@ from flysim import FlyBrain, Params
 
 class FlySwarm:
     def __init__(self, path, n=8, params: Params | None = None, device=None, seed=0,
-                 core=0.2, plasticity=True):
+                 core=0.2, plasticity=True, vision=False):
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
         self.n = n
         cpu = FlyBrain(path, params or Params(gain=1.0), seed=seed)
@@ -47,6 +47,13 @@ class FlySwarm:
         torch.manual_seed(seed)
         dev = self.device
 
+        # vision: the lamina hold and the dark baseline go into ext0 / the per-fly
+        # visual drive (enable_vision, decision in flysim); the eye map is eye.Eye
+        self.vision = vision
+        if vision:
+            cpu.enable_vision()
+        self.vis = torch.as_tensor(cpu.pop["visual"], device=self.device, dtype=torch.long)
+        self.vis_base = 0.0                      # dark = no histamine (corrected sign, see eye.py)
         # --- plastic edges (per fly) and the shared static matrix -----------------
         cpu.enable_plasticity()
         cpu.enable_compartments()
@@ -109,6 +116,7 @@ class FlySwarm:
         # --- per-fly state --------------------------------------------------------
         self.ext = self.ext0.unsqueeze(0).repeat(n, 1).contiguous()          # [B, N]
         self.drive_hz = torch.zeros(n, N, device=dev)
+        self.clear_senses()
         self.reset()
 
     # -- state ---------------------------------------------------------------- #
@@ -140,8 +148,15 @@ class FlySwarm:
     def clear_senses(self, fly=None):
         if fly is None:
             self.drive_hz.zero_()
+            if self.vision: self.drive_hz[:, self.vis] = self.vis_base      # dark, not blind
         else:
             self.drive_hz[fly].zero_()
+            if self.vision: self.drive_hz[fly, self.vis] = self.vis_base
+
+    def see(self, fly, receptor_idx, hz):
+        """Per-photoreceptor rates from eye.Eye.render (dark = baseline, light = less)."""
+        self.drive_hz[fly, torch.as_tensor(receptor_idx, device=self.device)] = torch.as_tensor(
+            np.asarray(hz, dtype=np.float32), device=self.device)
 
     def smell(self, fly, left: dict, right: dict):
         """Bilateral odour for one fly; strengths as in FlyBrain.smell_bilateral."""

@@ -140,6 +140,18 @@ class Params:
     #   receptor density; linear scaling has no such ceiling. NOT ADOPTED - measure
     #   with bg_hold.py-style sweep before using. Small connections (the median is
     #   6 synapses) are left almost unchanged by design.
+    ct1_scale: float = 1.0         # gain on CT1's output synapses. NOT ADOPTED - see below.
+    #   DESIGN DECISION 17 - CT1 is one giant GABAergic cell per side whose thousands
+    #   of terminals in the medulla and lobula act as electrically isolated local
+    #   compartments (Meier & Borst 2019): each column's CT1 terminal sees its own
+    #   column. The LIF makes it one spiking cell hitting every T4/T5 at once.
+    #   MEASURED: T4a receives +4.8k from Mi1 and -160k from CT1, T5a +37k / -274k,
+    #   and the entire motion pathway (13,585 T4/T5 cells) fires 0 spikes under a
+    #   looming stimulus. Same defect as APL (decision 12) - but scaling CT1 to 0.05
+    #   or 0.2 changed nothing: Mi1 fires ~1.4 Hz, the excitation onto T4 is tiny. The
+    #   optic-lobe periphery (R cells, L1-L3, Mi/Tm) is GRADED and non-spiking in life;
+    #   a spiking LIF with one W_syn does not reproduce its ON/OFF computation. Vision
+    #   here is luminance and dark blobs reaching the DNs, not looming. Left at 1.0.
     kc_kc_scale: float = 1.0       # DIAGNOSTIC: scale KC->KC synapses. 1.0 is the
                                    # connectome. Measured: KC->KC excitatory weight is
                                    # 55% of the PN input to KCs, and 24% of KCs get more
@@ -283,6 +295,9 @@ class FlyBrain:
         if self.p.kc_kc_scale != 1.0:
             iskc = self.cls == "Kenyon_Cell"
             data = np.where(iskc[pre] & iskc[post], data * self.p.kc_kc_scale, data)
+        if self.p.ct1_scale != 1.0:
+            is_ct1 = self.type.astype(str) == "CT1"
+            data = np.where(is_ct1[pre], data * self.p.ct1_scale, data)
         if self.p.apl_scale != 1.0:
             is_apl = self.type.astype(str) == "APL"
             self.n_apl = int(is_apl.sum())

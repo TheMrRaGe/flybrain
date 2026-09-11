@@ -1459,3 +1459,50 @@ survived 20 min of brain time (1,001 feeding ticks, 30 drinks, 86 hazard contact
 weights 96%): no death, so no inherit-vs-naive reading from that pair of runs. The
 lineage experiment needs a world that kills - which is what the Verge's Lieutenant
 is for.
+
+## Fly tribes in the Verge: sight, the whole craft list as novel effectors, and a full stop (`verge_swarm.py`, `eye.py`)
+
+**Vision, and its limits.** `eye.py` builds a compound eye from the L1 cartridge
+positions in the connectome (1,348 photoreceptor inputs with azimuth/elevation), and
+`FlySwarm(vision=True)` drives them with a rendered luminance scene (rate proportional
+to brightness - an earlier draft had the sign backwards and was corrected). What the
+flies get from it is honest and small: bright/dark blobs at a bearing. The T4/T5
+looming pathway is dark in the whole-brain model (graded periphery, the same
+convergence-layer problem as the DNs), so a Lieutenant is a dark blob, not a threat,
+until PPL105 has paired it with a hit.
+
+**The novel-effector experiment, made real for the whole craft list.** The Verge has 44
+verbs a fly has no circuit for (make spear/hammer/knife/axe/…, saw planks, dress
+blocks, smelt, build fire/wall/door/bed/well/…, gather). Each is bound to one
+gnathal descending-neuron TYPE with no established role in the field, the 44
+largest DNg/DNge types with at least two cells, in size order so the binding is
+reproducible (gather -> DNg08, eat -> DNg07, cook -> DNg106, build -> DNge091, spear ->
+DNge094, …; the full map is written to `state.json` as `pool_names`). A verb is
+pressed when its type fires above its own running baseline (Welford mean + 1.5 sd,
+after 20 decisions) AND the pack holds the game's own material cost for that verb
+(the game enforces it anyway; this just makes the attempt count meaningful). Every
+new thing in the pack fires PAM08; a made thing is logged as `crafted` and kept
+across lives. This is an interface choice, labelled; whether the brains ever chain
+gather -> spear, or gather -> hammer -> mason bench -> blocks -> wall, is the
+question. Nothing in the connectome says DNg08 means "gather"; if the association
+forms, it formed through PAM08 -> KC->MBON plasticity -> DN, the same path the
+odour conditioning traced.
+
+**Overeating, and the fix from the biology.** The first run showed the flies
+stripping bushes while full: the game clamps satiety at NEED_MAX but still
+harvests the bush, so a fed fly with sugar GRNs at half gain kept pressing the
+action button and starving its own tribe. Two published mechanisms now stop it:
+(1) Piezo-expressing mechanosensory neurons on the crop end the meal when it is
+distended (Min et al. 2021, eLife; Piezo-null flies overeat until the crop is
+grossly enlarged) - sugar drive fades over the last quarter of satiety and is zero
+from 90 %; (2) the brain's own fructose sensor Gr43a is appetitive when hungry and
+aversive when fed (Miyamoto et al. 2012, Cell) - feeding-motor drive on a bush with
+a full crop gives a half-strength PPL105 pulse, so overeating is taught against,
+not only blocked. Drinking was already thirst-gated at 90 % (ISN osmosensing,
+Jourjine et al. 2016, is the analogue; drinking itself remains IMPOSED).
+
+**Spectator page** (`xaya/prototypes/stage-b/flies.html` + `flies.js`, served by the
+game): the game's own renderer over the union of what all flies currently see,
+one card per fly with a live regional-activity brain, flash feedback, View all /
+double-click-to-follow, and a persistent gold ⚒ badge + banner (localStorage) so a
+craft that happens while nobody is watching is still on screen later.
