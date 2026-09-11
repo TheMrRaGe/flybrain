@@ -24,7 +24,7 @@ Start-Sleep 1
 
 # 3. the flies. Edit the numbers here: tribes, flies per tribe, which tribes' children inherit.
 $env:PYTHONIOENCODING = "utf-8"
-$args = "verge_swarm.py --tribes 2 --per-tribe 4 --inherit-tribes 0 --capacity 16 --max-ticks 0 " +
+$args = "verge_swarm.py --tribes 2 --per-tribe 4 --inherit-tribes all --capacity 16 --max-ticks 0 " +
         "--out-dir ../results/verge --state-copy ../../xaya/prototypes/stage-b/flystate.json"
 Start-Process -FilePath "python3" -ArgumentList $args -WorkingDirectory $here `
   -RedirectStandardOutput (Join-Path $out "run.log") -RedirectStandardError (Join-Path $out "run.err") -WindowStyle Minimized
