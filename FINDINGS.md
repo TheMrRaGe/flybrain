@@ -1419,3 +1419,43 @@ on contact while stationary, gated by thirst) and labelled as such in the code;
 eating is derived from the proboscis motor neurons. First life (box1): ate 69 ticks,
 drank 106, 20 hazard contacts costing 0.6 of its energy - hazards are what kills it,
 which is what the learning has to fix.
+
+## The swarm engine: 100 flies on a GTX 1650, faster than real time (`flysim_gpu.py`)
+
+Same model - the weight matrix is built by `FlyBrain` with every decision baked in,
+then stepped for B flies on the GPU with state tensors [B, N]. Only the 33,496
+plastic KC->MBON weights are per fly ([B, E]); the connectome is shared.
+**Verified statistically** against the CPU engine (`gpu_verify.py`, designed CS+,
+bilateral 0.35/0.21, 800 ms; CPU 3 seeds vs 8 GPU flies):
+
+| population | CPU mean [range] | GPU mean [range] |
+|---|---|---|
+| KC active cells | 158 [151-164] | 166 [153-179] |
+| MBON spikes | 621 [609-630] | 619 [582-670] |
+| DN spikes | 6,030 [5,750-6,318] | 5,824 [5,332-6,554] |
+| leg motor spikes | 2,714 [2,561-2,867] | 2,692 [2,501-3,089] |
+
+Two things made it fast, both measured. (1) A dense spike-matrix product costs
+107 ms/step for 64 flies - 466M multiply-adds, 99.6% by zero. Event-driven
+propagation (decision 10, batched: gather the out-edges of every (fly, neuron) that
+fired, one index_put) halves the no-learning cost. (2) With learning on the
+dopamine loop was 60% of a step because it ran over [B, 162k] for every DAN type;
+dopamine exists at 97 MBONs and traces at 4,064 KCs, so the learning state is kept
+there. Result, plasticity ON:
+
+| flies | ms/step (all) | ms per fly-step | real-time factor per fly |
+|---|---|---|---|
+| 8 | 14.2 | 1.78 | 0.56x |
+| 64 | 44.5 | 0.70 | 1.44x |
+| **100** | **64.5** | **0.65** | **1.55x** |
+
+CPU engine: ~3.5-4 ms per fly-step. Hardware: GTX 1650 Max-Q (4 GB), i5-10300H.
+Noise and Poisson draws use different generators, so the comparison is statistical
+by necessity; the conditioning result should be reproduced on the swarm before it is
+used for a claim (not yet done).
+
+**Box, first survivor.** With derived feeding and thirst-gated drinking a naive brain
+survived 20 min of brain time (1,001 feeding ticks, 30 drinks, 86 hazard contacts,
+weights 96%): no death, so no inherit-vs-naive reading from that pair of runs. The
+lineage experiment needs a world that kills - which is what the Verge's Lieutenant
+is for.
