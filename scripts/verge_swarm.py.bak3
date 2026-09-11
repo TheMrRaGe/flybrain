@@ -105,16 +105,6 @@ VERBS = {
     "give":            ("a gift", []),                    # hands the offered item to the nearest fly (bond: gave/fed)
     "cycleOffer":      ("a different offer", []),
 }
-# SCENT WORDS - the language experiment. Four emissions a fly can make, each bound to
-# an unassigned descending-neuron type (like the craft verbs) and each smelled by the
-# others on one olfactory receptor type no other odour in this world uses, chosen for a
-# large Kenyon-cell footprint (odours3.json) so the listener's mushroom body represents
-# it richly. No meaning is assigned anywhere. A word gets meaning only if the world
-# pairs it with reward or punishment in a listener (KC->MBON plasticity), and gets
-# used only if the speaker's brain drives it in some context. Flies cannot do this;
-# it is an experiment with the fly's machinery, and labelled so.
-WORDS = {"bzz": "ORN_DM1", "vrr": "ORN_DP1m", "tik": "ORN_DM2", "hum": "ORN_DC1"}
-WORD_SECS = 20.0            # a word hangs in the air this long
 # pack fields that are THINGS MADE (a tool, a garment, a container); materials gained
 # count as gathers. Both are rewarded; only these count as crafts.
 MADE = {"spear", "hammer", "knife", "axe", "pickaxe", "hoe", "cordage", "cloak", "bandage", "boots", "gloves",
@@ -143,8 +133,7 @@ class Soul:
         self.prev = None                     # previous (satiety, hydration, warmth, health)
         self.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
                      "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0}
-        self.last_word = None
+                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0}
         self.crafted_ever = []
         self.prev_pack = None
         self.lives = 0
@@ -161,10 +150,6 @@ class Soul:
         self.singing = False; self.court_target = None
         self.hears = False; self.touching = None; self.smells_alarm = False
         self.say_q = []; self.last_say = 0.0
-        self.words_out = {}                   # word -> (expiry, x, y)
-        self.heard = None                     # (word, speaker, dist0, decisions_left)
-        self.heard_word = None; self.heard_from = None
-        self.da_pool = 1.0; self.da_t = time.time()   # dopamine budget (see reward())
 
     def say(self, text):
         # one line per 6 s per fly, so the chat reads like a village and not a firehose
@@ -218,7 +203,6 @@ class VergeSwarm:
         self.odours["stranger"] = ["ORN_VA1d"]
         self.odours["male"] = ["ORN_DA1"]
         self.odours["alarm"] = ["ORN_V"]
-        for w, orn in WORDS.items(): self.odours[w] = [orn]
         for k, ts in self.odours.items():
             cpu._odor_map[k] = {t: 1.0 for t in ts}
         dev = self.sw.device
@@ -255,11 +239,7 @@ class VergeSwarm:
                       key=lambda t: (-dn_types[t], t))
         self.pool_names = {verb: free[i] for i, verb in enumerate(VERBS)}
         self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
-        for j, w in enumerate(WORDS): self.pool_names["say_" + w] = free[len(VERBS) + j]
-        self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
-        self.pool_stats = {i: {k: [0.0, 0.0, 0] for k in self.pool_names} for i in range(a.flies)}   # mean, M2, n per soul
-        self.word_stats = {w: {"said": 0, "ctx": {"food": 0, "water": 0, "danger": 0, "stranger": 0, "kin": 0, "hungry": 0, "thirsty": 0},
-                               "heard": 0, "approach": 0, "avoid": 0, "reward_after": 0, "punish_after": 0} for w in WORDS}
+        self.pool_stats = {i: {k: [0.0, 0.0, 0] for k in VERBS} for i in range(a.flies)}   # mean, M2, n per soul
         # THE SOCIAL LAYER, from the connectome's own annotations (body-annotations feather):
         #   dimorphism 'male-specific'      1,258 cells a female does not have -> silenced in females
         #   receptorType putative_ppk23/25  leg pheromone neurons: 7,11-HD (female) / 7-T (male) on contact
@@ -328,8 +308,6 @@ class VergeSwarm:
                 pts["kin" if same else "stranger"].append((p["x"], p["y"]))
         others = [o for o in self.souls if o is not s and o.x is not None and o.id is not None and not o.dead_sent]
         for o in others:
-            for w, (exp, wx, wy) in list(o.words_out.items()):
-                if exp > now: pts[w].append((wx, wy))
             if o.sex == "M": pts["male"].append((o.x, o.y))                      # cVA drifts from every male
             if o.alarm_until > now and o.alarm_pos: pts["alarm"].append(o.alarm_pos)   # CO2 where a fly was hurt
         lt = snap.get("lieutenant")
@@ -363,7 +341,7 @@ class VergeSwarm:
             scene = []
             flick = {(o.x, o.y) for o in others if o.flick_until > now}
             for k, plist in pts.items():
-                if k in ("male", "alarm") or k in WORDS: continue                # smelled, not seen
+                if k in ("male", "alarm"): continue                             # smelled, not seen
                 lum = 1.0 if k == "fire" else 0.1
                 size = 1.2 if k in ("lieutenant", "beast", "kin", "stranger") else 1.0
                 for (px, py) in sorted(plist, key=lambda q: math.hypot(q[0] - x, q[1] - y))[:24]:
@@ -421,42 +399,16 @@ class VergeSwarm:
         s.hears = any(o.sex == "M" and o.singing and d < 2.0 for d, o in near)
         if s.hears: sw.drive_hz[f, self.jo] = 200.0
         s.smells_alarm = "alarm" in nearest and nearest["alarm"][0] < self.a.plume_tiles
-        # listening: the nearest word in the air; a new one is an onset, then three
-        # decisions decide whether the listener closed on the speaker or left
-        heard = [(nearest[w][0], w) for w in WORDS if w in nearest and nearest[w][0] < self.a.plume_tiles]
-        if heard:
-            d0, w = min(heard)
-            spk = None
-            for o in others:
-                if w in o.words_out and o.words_out[w][0] > now and (o.words_out[w][1], o.words_out[w][2]) == nearest[w][1:]:
-                    spk = o; break
-            if s.heard_word is None or s.heard_word[0] != w or now - s.heard_word[2] > WORD_SECS:
-                s.heard_word = (w, spk.name if spk else "?", now); s.heard_from = spk
-                s.heard = [w, spk, d0, 3]; s.life["heard_words"] += 1; self.word_stats[w]["heard"] += 1
-                self.note(s, "heard", {"word": w, "from": spk.name if spk else None, "dist": d0})
-                s.say("I hear %s: %s" % (spk.name if spk else "someone", w))
-        elif s.heard_word and now - s.heard_word[2] > WORD_SECS:
-            s.heard_word = None
-        if s.heard and s.heard[3] > 0:
-            s.heard[3] -= 1
-            if s.heard[3] == 0 and s.heard[1] is not None and s.heard[1].x is not None:
-                d1 = math.hypot(s.heard[1].x - x, s.heard[1].y - y) / TILE
-                key = "approach" if d1 < s.heard[2] - 0.5 else "avoid" if d1 > s.heard[2] + 0.5 else None
-                if key:
-                    self.word_stats[s.heard[0]][key] += 1
-                    self.note(s, key, {"word": s.heard[0], "from": s.heard[1].name, "d0": s.heard[2], "d1": d1})
-                    if key == "approach": s.say("Going to see what %s means." % s.heard[1].name)
         # hunger through its targets (Krashes 2009): MB-MP1 tonic when fed
         sw.quiet_dopamine(f)
         sw.ext[f, self.ppl101] = 8.0 * (1.0 - hunger)
         # the world teaches: reward on satiety/hydration gain, punishment on damage
         cur = (needs["satiety"], needs["hydration"], needs["warmth"], me.get("health", 0))
         if s.prev is not None:
-            if cur[0] > s.prev[0] + 1: self.reward(s, f, need=1.0 - s.prev[0] / NEED_MAX)
-            elif cur[1] > s.prev[1] + 1: self.reward(s, f, need=1.0 - s.prev[1] / NEED_MAX)
+            if cur[0] > s.prev[0] + 1 or cur[1] > s.prev[1] + 1:
+                sw.stimulate_type(f, "PAM08", 70.0); s.life["rewards"] += 1
             if cur[3] < s.prev[3]:
                 sw.stimulate_type(f, "PPL105", 70.0); s.life["punish"] += 1; s.life["hits"] += 1
-                if s.heard_word and now - s.heard_word[2] < WORD_SECS: self.word_stats[s.heard_word[0]]["punish_after"] += 1
                 # a hurt fly gives off CO2 that others avoid for minutes (Suh 2004) and
                 # flicks its wings, which flies that can see it read as danger (Kacsoh 2015)
                 s.alarm_until = now + 60.0; s.alarm_pos = (x, y); s.flick_until = now + 5.0
@@ -471,7 +423,7 @@ class VergeSwarm:
                     # ten units are rewarded, more is not (soul 6 sat on a clay tile and
                     # dug 1,181 clay for 60 rewards in the first run). Made things always are.
                     if k in MADE or s.prev_pack.get(k, 0) < 10:
-                        self.reward(s, f, need=1.0)
+                        sw.stimulate_type(f, "PAM08", 70.0); s.life["rewards"] += 1
                     if k in MADE and s.prev_pack.get(k, 0) == 0:
                         s.life["crafted"].append(k); self.note(s, "crafted", {"item": k})
                     elif k not in MADE and k != "water":
@@ -585,25 +537,6 @@ class VergeSwarm:
                 self.note(s, "gave", {"item": offer}); s.say("Here, take this %s." % offer)
             if hot.get("cycleOffer"):
                 verbs.append("cycleOffer")
-            # speaking: a word whose DN type fires above baseline goes into the air for
-            # WORD_SECS; the context it was said in is the dictionary being written
-            for w in WORDS:
-                # words take a stronger burst than verbs (mean + 2.5 sd, ~1 in 200 decisions
-                # by chance) so the air is not full of noise and a word is an event
-                stw = self.pool_stats[f]["say_" + w]
-                sdw = math.sqrt(stw[1] / max(stw[2] - 1, 1)) if stw[2] > 2 else 1e9
-                loud = stw[2] > 20 and float(pln["say_" + w][f]) > stw[0] + 2.5 * sdw
-                if loud and (w not in s.words_out or s.words_out[w][0] < time.time()) and s.x is not None:
-                    s.words_out[w] = (time.time() + WORD_SECS, s.x, s.y)
-                    c = ctx[f]; nr = c["nearest"]; ws = self.word_stats[w]; ws["said"] += 1
-                    ctxs = {"food": "bush" in nr and nr["bush"][0] < 3, "water": "water" in nr and nr["water"][0] < 3,
-                            "danger": s.alarm_until > time.time() or any(k in nr and nr[k][0] < 5 for k in ("lieutenant", "beast")),
-                            "stranger": "stranger" in nr and nr["stranger"][0] < 4, "kin": "kin" in nr and nr["kin"][0] < 4,
-                            "hungry": c["hunger"] > 0.5, "thirsty": c["thirst"] > 0.5}
-                    for k2, v2 in ctxs.items():
-                        if v2: ws["ctx"][k2] += 1
-                    s.life["words"] += 1; s.last_word = (w, time.time())
-                    self.note(s, "word", {"word": w, **ctxs}); s.say("%s!" % w)
             if hot.get("gather") and (cc.get("tree_near") or cc.get("rock_near")):
                 verbs.append("action"); s.life["gather_tries"] += 1; act = True; speed = 0.0
             for k, (made, needs) in VERBS.items():
@@ -646,11 +579,7 @@ class VergeSwarm:
             souls.append({"i": s.i, "id": s.id, "name": s.name, "sex": s.sex, "tribe": s.tribe,
                           "social": {"singing": s.singing, "to": s.court_target, "hears": s.hears, "touching": s.touching,
                                      "alarm": s.alarm_until > time.time(), "flick": s.flick_until > time.time(),
-                                     "smells_alarm": s.smells_alarm,
-                                     "saying": [w for w, v in s.words_out.items() if v[0] > time.time()],
-                                     "hearing": s.heard_word[0] if s.heard_word and time.time() - s.heard_word[2] < WORD_SECS else None,
-                                     "hearing_from": s.heard_word[1] if s.heard_word and time.time() - s.heard_word[2] < WORD_SECS else None,
-                                     "da_pool": round(s.da_pool, 2)},
+                                     "smells_alarm": s.smells_alarm},
                           "inherit": s.inherit, "lives": s.lives, "alive": bool(me and me.get("alive", True)),
                           "x": me["x"] if me else None, "y": me["y"] if me else None,
                           "needs": me.get("needs") if me else None, "health": me.get("health") if me else None,
@@ -660,8 +589,7 @@ class VergeSwarm:
                           "kin_d": float(np.mean(s.kin_d[-20:])) if s.kin_d else None,
                           "stranger_d": float(np.mean(s.str_d[-20:])) if s.str_d else None})
         st = {"ticks": self.game_ticks, "wall": time.time(), "souls": souls, "pool_names": self.pool_names,
-              "deaths": self.deaths[-30:], "odours": self.odours,
-              "words": {w: {"orn": WORDS[w], "pool": self.pool_names["say_" + w], **self.word_stats[w]} for w in WORDS}}
+              "deaths": self.deaths[-30:], "odours": self.odours}
         for path in [self.state_path] + ([self.a.state_copy] if self.a.state_copy else []):
             tmp = path + ".tmp"
             with open(tmp, "w") as f:
@@ -673,23 +601,6 @@ class VergeSwarm:
                     time.sleep(0.05)
 
     # -- deaths ------------------------------------------------------------------ #
-
-    def reward(self, s, f, need=1.0):
-        """PAM08 for a good outcome, with two limits. (1) Appetitive reward needs
-        hunger: a fed fly forms no sugar memory (Krashes et al. 2009), so the pulse
-        scales with the need it met - full above 50 %, nothing when sated. (2) A
-        budget: each pulse spends a quarter of a pool that refills over a minute, so
-        a run of rewards tapers instead of piling up - the limit asked for, labelled
-        as a modelling choice (dopamine release does adapt with repetition, but this
-        number is ours). Punishment is not gated: pain is not state-dependent."""
-        now = time.time()
-        s.da_pool = min(1.0, s.da_pool + (now - s.da_t) / 60.0); s.da_t = now
-        amp = 70.0 * min(1.0, need / 0.5) * s.da_pool
-        if amp < 5.0: return False
-        self.sw.stimulate_type(f, "PAM08", amp); s.da_pool = max(0.0, s.da_pool - 0.25)
-        s.life["rewards"] += 1
-        if s.heard_word and now - s.heard_word[2] < WORD_SECS: self.word_stats[s.heard_word[0]]["reward_after"] += 1
-        return True
 
     def note(self, s, event, extra):
         rec = {"event": event, "soul": s.i, "tribe": s.tribe, "inherit": s.inherit, "game_tick": s.tick,
@@ -714,8 +625,7 @@ class VergeSwarm:
         s.lives += 1
         s.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
                   "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                  "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0}
-        s.words_out = {}; s.heard = None; s.heard_word = None; s.last_word = None
+                  "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0}
         s.alarm_until = 0.0; s.flick_until = 0.0; s.singing = False; s.court_target = None
         s.hears = False; s.touching = None; s.x = s.y = None
         s.prev_pack = None

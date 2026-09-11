@@ -1559,3 +1559,40 @@ limited to one line per 6 s: hit (alarm + wing flick), escape (wing flick),
 song ("*sings to Fly-0-03♀* (pIP10)"), hearing, touch, alarm smelled, gift, and
 crafts ("I made a hammer!"). The spectator page shows the same on each card and
 flashes pink on song/touch/gift.
+
+## Scent words and a dopamine limit (`verge_swarm.py`, 11 Sept 2026)
+
+**Is there a fly language?** Not in the field: the repertoire (cVA, 7,11-HD, CO2,
+song, wing flicks) is innate and syntax-free; a male raised alone sings normally.
+What this brain can support is a signal acquiring meaning in a *listener* through
+the one plastic site it has (KC->MBON, dopamine-gated), which we have shown reaches
+the DNs. That is the experiment, labelled as an experiment with the fly's machinery
+and not as fly biology.
+
+**Design.** Four words (bzz, vrr, tik, hum). Emission: each bound to an unassigned
+DN type (DNge087/092/093/113), pressed when the type bursts above its own baseline
+by 2.5 sd (~1 in 200 decisions by chance); a word hangs in the air for 20 s where
+it was said. Reception: each word is one olfactory receptor type no other odour in
+this world uses (ORN_DM1, DP1m, DM2, DC1 - the largest Kenyon-cell footprints in
+`odours3.json`), smelled bilaterally like any plume. No meaning is assigned. The
+dictionary is written by the world: every emission logs its context (food, water,
+danger, stranger, kin near; hungry, thirsty), every hearing logs whether the
+listener closed on the speaker or left within three decisions, and whether a reward
+or a hit followed within the word's window. Song and other social channels have
+words alongside them in the chat.
+
+**Expectation, stated before the data.** Listener-side meaning (a word's MBON
+response diverging with its history) should appear if a word is reliably paired
+with reward or punishment, as odours were. Speaker-side use (a word said at food
+more often than baseline) has no mechanism behind it - nothing reinforces
+emitting - so if it appears it is a finding, and if it does not, the model has
+listeners who understand a vocabulary nobody speaks on purpose.
+
+**The dopamine limit.** Flies in the box and the Verge sat on rewards. Two limits,
+labelled: (1) need-gating - appetitive reward needs hunger (Krashes et al. 2009:
+sated flies form no sugar memory), so a PAM08 pulse scales with the need it met,
+full above 50 %, zero when sated; (2) a budget - each pulse spends a quarter of a
+pool that refills over a minute, so runs of reward taper (dopamine release does
+adapt with repetition; the number is ours). Punishment is not gated. First minutes:
+the budget works (Fly-0-00 at 7 % after four rewards), and the clay/bush loops are
+gone.
