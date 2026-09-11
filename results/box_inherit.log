@@ -202,3 +202,6 @@ loading ../brain_mirrored.npz ...
   life 1 t=1182.0s pos=( -8.7, 31.0) e=1.00 w=0.68 c=0.85 leg= 843 feed night ate 1255 drank 34 hurt 99  w 95.93%
   life 1 t=1188.0s pos=(  2.9, 33.0) e=0.99 w=0.66 c=0.82 leg= 496 walk night ate 1277 drank 34 hurt 99  w 95.93%
   life 1 t=1194.0s pos=( -0.2, 22.0) e=0.97 w=0.65 c=0.79 leg= 532 walk night ate 1277 drank 34 hurt 99  w 95.92%
+  life 1 t=1200.0s pos=(  2.4, 33.0) e=0.94 w=0.94 c=0.76 leg= 504 walk day ate 1277 drank 39 hurt 99  w 95.92%
+
+stopped after 1200 s of brain time, 0 deaths

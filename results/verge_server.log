@@ -1,0 +1,14 @@
+the Verge remembers what was built in it, up to tick 1329000
+the Barrow-list remembers 902 souls
+the Grey King is played by the Understudy — set OVERLORD=1 for a real model
+The Verge is open at http://localhost:8000/
+Open it in two tabs and you have two souls in one world.
+For two machines: HOST=0.0.0.0 npm start
+soul #974 joined as player 0 (1 playing)
+player 0 is "Fly-0-00 Tribe-0" (agent)
+soul #975 joined as player 1 (2 playing)
+player 1 is "Fly-0-01 Tribe-0" (agent)
+soul #976 joined as player 2 (3 playing)
+player 2 is "Fly-1-02 Tribe-1" (agent)
+soul #977 joined as player 3 (4 playing)
+player 3 is "Fly-1-03 Tribe-1" (agent)
