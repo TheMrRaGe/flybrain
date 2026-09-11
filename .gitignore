@@ -13,3 +13,4 @@ __pycache__/
 .qodo/
 scripts/results/
 results/box_smoke/
+results/verge/telegram.json
