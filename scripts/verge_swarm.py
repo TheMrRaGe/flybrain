@@ -548,6 +548,14 @@ class VergeSwarm:
                     s.heading += 2.1 + float(np.random.default_rng(s.decisions).uniform(-0.6, 0.6))
                     sw.drive_hz[f, self.touch["L"]] = 150.0; sw.drive_hz[f, self.touch["R"]] = 150.0
                     s.life["bumps"] += 1
+            if s.x is not None:
+                ex = s.x / TILE; ey = s.y / TILE
+                out = ((ex < 1.5 and math.cos(s.heading) < 0) or (ex > WORLD_W - 1.5 and math.cos(s.heading) > 0)
+                       or (ey < 1.5 and math.sin(s.heading) < 0) or (ey > WORLD_H - 1.5 and math.sin(s.heading) > 0))
+                if out:                                                   # sliding along the edge counts as a wall too
+                    s.heading = math.atan2(WORLD_H * TILE / 2 - s.y, WORLD_W * TILE / 2 - s.x) + float(np.random.default_rng(s.decisions).uniform(-0.8, 0.8))
+                    sw.drive_hz[f, self.touch["L"]] = 150.0; sw.drive_hz[f, self.touch["R"]] = 150.0
+                    s.life["bumps"] += 1
             s.px, s.py = s.x, s.y
             # speed from leg motor drive: rest ~262 -> 0.34, odour ~490 -> 0.9, stop < 130
             speed = 0.0 if leg < 130.0 else min(1.0, (leg - 130.0) / 390.0)
@@ -587,6 +595,20 @@ class VergeSwarm:
             if s.singing and not was:
                 s.life["songs"] += 1; self.note(s, "song", {"to": s.court_target})
                 s.say("Hey %s, come over here a minute." % s.court_target)
+            if s.singing:
+                # a courting male tracks the female (P1 -> LC10a visual pursuit, Ribeiro et
+                # al. 2018). The optic-lobe pursuit path is dark here, so the tracking is
+                # written out: face her, slow to a court. Labelled substitute.
+                tgt = near_f[0]
+                s.heading = math.atan2(tgt.y - s.y, tgt.x - s.x)
+                d_t = math.hypot(tgt.x - s.x, tgt.y - s.y) / TILE
+                speed = 0.0 if d_t < 0.6 else min(speed, 0.6)
+            # a receptive female slows to the song (Coen et al. 2014). Her deciding
+            # circuit (vpoDN) is absent from the male connectome, so the slowing is
+            # written out for a female who is not gravid, not in refractory and fed:
+            # the male side (the song) is the brain's; her side is the substitute.
+            if s.sex == "F" and s.hears and s.gravid_until is None and s.tick > s.refractory_until and c["hunger"] < 0.7:
+                speed = min(speed, 0.3)
             # acceptance. A receptive female slows and stays (Coen et al. 2014); the
             # female-specific circuit that decides this (vpoDN) is not in the male
             # connectome, so staying within a tile of a singing male for three decisions
