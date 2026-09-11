@@ -1,14 +1,144 @@
-the Verge remembers what was built in it, up to tick 1329000
-the Barrow-list remembers 902 souls
+the Verge remembers what was built in it, up to tick 1356600
+the Barrow-list remembers 988 souls
 the Grey King is played by the Understudy — set OVERLORD=1 for a real model
 The Verge is open at http://localhost:8000/
 Open it in two tabs and you have two souls in one world.
 For two machines: HOST=0.0.0.0 npm start
-soul #974 joined as player 0 (1 playing)
+soul #1081 joined as player 0 (1 playing)
 player 0 is "Fly-0-00 Tribe-0" (agent)
-soul #975 joined as player 1 (2 playing)
+soul #1082 joined as player 1 (2 playing)
 player 1 is "Fly-0-01 Tribe-0" (agent)
-soul #976 joined as player 2 (3 playing)
-player 2 is "Fly-1-02 Tribe-1" (agent)
-soul #977 joined as player 3 (4 playing)
-player 3 is "Fly-1-03 Tribe-1" (agent)
+soul #1083 joined as player 2 (3 playing)
+player 2 is "Fly-0-02 Tribe-0" (agent)
+soul #1084 joined as player 3 (4 playing)
+player 3 is "Fly-0-03 Tribe-0" (agent)
+soul #1085 joined as player 4 (5 playing)
+player 4 is "Fly-1-04 Tribe-1" (agent)
+soul #1086 joined as player 5 (6 playing)
+player 5 is "Fly-1-05 Tribe-1" (agent)
+soul #1087 joined as player 6 (7 playing)
+player 6 is "Fly-1-06 Tribe-1" (agent)
+soul #1088 joined as player 7 (8 playing)
+player 7 is "Fly-1-07 Tribe-1" (agent)
+soul #1083 — savaged by wolves at tick 1359163
+soul #1089 takes player 2's place
+incident: rain — Nothing is happening. I can wait longer than you can.
+soul #1084 — savaged by wolves at tick 1359710
+soul #1090 takes player 3's place
+soul #1088 — savaged by wolves at tick 1359758
+soul #1091 takes player 7's place
+soul #1089 — savaged by wolves at tick 1360021
+soul #1092 takes player 2's place
+soul #1085 — savaged by wolves at tick 1360211
+soul #1093 takes player 4's place
+soul #1090 — savaged by wolves at tick 1360439
+soul #1094 takes player 3's place
+soul #1086 — savaged by wolves at tick 1360559
+soul #1095 takes player 5's place
+soul #1087 — savaged by wolves at tick 1360699
+soul #1096 takes player 6's place
+soul #1082 — savaged by wolves at tick 1360725
+soul #1097 takes player 1's place
+soul #1081 — savaged by wolves at tick 1360745
+soul #1098 takes player 0's place
+soul #1096 — savaged by wolves at tick 1360917
+soul #1099 takes player 6's place
+soul #1095 — savaged by wolves at tick 1361072
+soul #1100 takes player 5's place
+soul #1092 — savaged by wolves at tick 1361158
+soul #1101 takes player 2's place
+soul #1094 — savaged by wolves at tick 1361382
+soul #1102 takes player 3's place
+soul #1101 — savaged by wolves at tick 1361431
+soul #1103 takes player 2's place
+soul #1093 — savaged by wolves at tick 1361542
+soul #1104 takes player 4's place
+soul #1099 — savaged by wolves at tick 1361545
+could not save the Barrow-list (EPERM: operation not permitted, rename 'C:\Users\Shwif\OneDrive\Desktop\xaya\prototypes\stage-b\data\barrow.json.73028.tmp' -> 'C:\Users\Shwif\OneDrive\Desktop\xaya\prototypes\stage-b\data\barrow.json')
+soul #1105 takes player 6's place
+soul #1105 — savaged by wolves at tick 1365153
+soul #1106 takes player 6's place
+soul #1100 — savaged by wolves at tick 1365368
+soul #1107 takes player 5's place
+soul #1098 — savaged by wolves at tick 1365387
+soul #1108 takes player 0's place
+soul #1106 — savaged by wolves at tick 1365651
+soul #1109 takes player 6's place
+soul #1107 — savaged by wolves at tick 1366368
+soul #1110 takes player 5's place
+soul #1103 — savaged by wolves at tick 1366406
+soul #1111 takes player 2's place
+soul #1108 — savaged by wolves at tick 1366593
+soul #1112 takes player 0's place
+soul #1111 — savaged by wolves at tick 1366698
+soul #1113 takes player 2's place
+soul #1102 — savaged by wolves at tick 1367350
+soul #1114 takes player 3's place
+soul #1097 — died of thirst at tick 1367822
+soul #1115 takes player 1's place
+soul #1104 — died of thirst at tick 1368641
+soul #1116 takes player 4's place
+soul #1091 — savaged by wolves at tick 1371182
+soul #1117 takes player 7's place
+soul #1116 — savaged by wolves at tick 1371348
+soul #1118 takes player 4's place
+soul #1109 — savaged by wolves at tick 1371583
+soul #1119 takes player 6's place
+soul #1118 — savaged by wolves at tick 1371633
+soul #1120 takes player 4's place
+soul #1115 — savaged by wolves at tick 1371755
+soul #1121 takes player 1's place
+player 3 disconnected (7 playing)
+player 6 disconnected (6 playing)
+player 0 disconnected (5 playing)
+player 4 disconnected (4 playing)
+player 5 disconnected (3 playing)
+player 2 disconnected (2 playing)
+player 1 disconnected (1 playing)
+player 7 disconnected (0 playing)
+soul #1112 — never made it home at tick 1372178
+soul #1121 — never made it home at tick 1372178
+soul #1113 — never made it home at tick 1372178
+soul #1114 — never made it home at tick 1372178
+soul #1120 — never made it home at tick 1372178
+soul #1110 — never made it home at tick 1372178
+soul #1119 — never made it home at tick 1372178
+soul #1117 — never made it home at tick 1372178
+soul #1122 joined as player 8 (1 playing)
+player 8 is "Fly-0-00 Tribe-0" (agent)
+soul #1123 joined as player 9 (2 playing)
+player 9 is "Fly-0-01 Tribe-0" (agent)
+soul #1124 joined as player 10 (3 playing)
+player 10 is "Fly-0-02 Tribe-0" (agent)
+soul #1125 joined as player 11 (4 playing)
+player 11 is "Fly-0-03 Tribe-0" (agent)
+soul #1126 joined as player 12 (5 playing)
+player 12 is "Fly-1-04 Tribe-1" (agent)
+soul #1127 joined as player 13 (6 playing)
+player 13 is "Fly-1-05 Tribe-1" (agent)
+soul #1128 joined as player 14 (7 playing)
+player 14 is "Fly-1-06 Tribe-1" (agent)
+soul #1129 joined as player 15 (8 playing)
+player 15 is "Fly-1-07 Tribe-1" (agent)
+soul #1125 — savaged by wolves at tick 1372986
+soul #1130 takes player 11's place
+soul #1130 — savaged by wolves at tick 1373367
+soul #1131 takes player 11's place
+soul #1126 — savaged by wolves at tick 1373732
+soul #1132 takes player 12's place
+player 13 disconnected (7 playing)
+soul #1127 — never made it home at tick 1374857
+player 10 disconnected (6 playing)
+player 11 disconnected (5 playing)
+player 8 disconnected (4 playing)
+player 9 disconnected (3 playing)
+player 15 disconnected (2 playing)
+player 14 disconnected (1 playing)
+player 12 disconnected (0 playing)
+soul #1122 — never made it home at tick 1374858
+soul #1123 — never made it home at tick 1374858
+soul #1124 — never made it home at tick 1374858
+soul #1131 — never made it home at tick 1374858
+soul #1132 — never made it home at tick 1374858
+soul #1128 — never made it home at tick 1374858
+soul #1129 — never made it home at tick 1374858

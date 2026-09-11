@@ -337,7 +337,11 @@ class VergeSwarm:
         if s.prev_pack is not None:
             for k, v in pack.items():
                 if isinstance(v, (int, float)) and v > s.prev_pack.get(k, 0):
-                    sw.stimulate_type(f, "PAM08", 70.0); s.life["rewards"] += 1
+                    # a material is worth having until there is plenty of it: the first
+                    # ten units are rewarded, more is not (soul 6 sat on a clay tile and
+                    # dug 1,181 clay for 60 rewards in the first run). Made things always are.
+                    if k in MADE or s.prev_pack.get(k, 0) < 10:
+                        sw.stimulate_type(f, "PAM08", 70.0); s.life["rewards"] += 1
                     if k in MADE and s.prev_pack.get(k, 0) == 0:
                         s.life["crafted"].append(k); self.note(s, "crafted", {"item": k})
                     elif k not in MADE:
