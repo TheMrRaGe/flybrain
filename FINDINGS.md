@@ -1596,3 +1596,24 @@ pool that refills over a minute, so runs of reward taper (dopamine release does
 adapt with repetition; the number is ours). Punishment is not gated. First minutes:
 the budget works (Fly-0-00 at 7 % after four rewards), and the clay/bush loops are
 gone.
+
+## Generations: courtship, acceptance, children, inheritance as the lever (11 Sept 2026)
+
+No individual respawn any more. A generation starts with eight founders (per tribe
+two males, two females); when the last fly dies the next generation's founders
+arrive. A male sings when pC1/pIP10 burst with a female within two tiles; the
+female accepts by staying within a tile of him for three decisions at under half
+speed (a receptive female slows and stays - Coen et al. 2014; the female-specific
+decision circuit, vpoDN, is not in the male connectome, so the behaviour IS the
+acceptance here, labelled). A child is due 1,500 game ticks later, joins the
+mother's tribe with a coin-flip sex, and needs a free brain slot (capacity 16).
+
+Inheritance is the tribe policy and the experiment's lever: Tribe 0 children take
+the mean of their parents' plastic KC->MBON weights (the father's snapshotted at
+mating); Tribe 1 children are born naive. Memories are not inherited in real flies;
+this Lamarckian rule is the tool, labelled as such. The question is whether the
+inheriting lineage outlasts the naive one over generations, measured by births,
+deaths and generation length per tribe in `events.jsonl`.
+
+Craft tally so far: three hammers (Fly-1-07 twice across lives, Fly-1-04), all
+Tribe 1, all in the old respawn regime; one gift (wood) by Fly-1-07.

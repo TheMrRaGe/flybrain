@@ -132,13 +132,8 @@ def log(m): print(m, flush=True)
 
 
 class Soul:
-    def __init__(self, i, inherit, tribe=0, sex="M", born_n=0, mother=None, father=None, gen=1):
+    def __init__(self, i, inherit, tribe=0):
         self.i, self.inherit, self.tribe = i, inherit, tribe
-        self.born_n, self.gen = born_n, gen
-        self.mother, self.father = mother, father          # names, or None for the founders
-        self.mate = None; self.kids = []
-        self.gravid_until = None; self.egg_w = None; self.recept = 0; self.refractory_until = 0
-        self.dead = False
         self.kin_d, self.str_d = [], []      # distance to nearest kin / stranger, per tick
         self.id = None
         self.snap = None
@@ -148,7 +143,7 @@ class Soul:
         self.prev = None                     # previous (satiety, hydration, warmth, health)
         self.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
                      "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0, "bumps": 0, "mates": 0}
+                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0, "bumps": 0}
         self.last_word = None
         self.crafted_ever = []
         self.prev_pack = None
@@ -157,8 +152,9 @@ class Soul:
         self.intent = None
         self.decisions = 0
         self.err_x = self.err_y = 0.0
-        self.sex = sex
-        self.name = "Fly-%d-%02d%s" % (tribe, born_n, "\u2642" if self.sex == "M" else "\u2640")
+        # sex alternates within a tribe; the social state below is per life
+        self.sex = "M" if i % 2 == 0 else "F"
+        self.name = "Fly-%d-%02d%s" % (tribe, i, "\u2642" if self.sex == "M" else "\u2640")
         self.x = self.y = None
         self.alarm_until = 0.0; self.alarm_pos = None
         self.flick_until = 0.0
@@ -179,7 +175,7 @@ class Soul:
 class VergeSwarm:
     def __init__(self, a):
         self.a = a
-        self.sw = FlySwarm(a.brain, n=a.capacity, params=Params(gain=1.0, kc_thresh_scale=a.kc_thresh),
+        self.sw = FlySwarm(a.brain, n=a.flies, params=Params(gain=1.0, kc_thresh_scale=a.kc_thresh),
                            seed=a.seed, plasticity=True, vision=not a.blind)
         cpu = self.sw.cpu
         # SIGHT, limited to what the model reproduces: luminance and dark blobs reaching the
@@ -261,7 +257,7 @@ class VergeSwarm:
         self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
         for j, w in enumerate(WORDS): self.pool_names["say_" + w] = free[len(VERBS) + j]
         self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
-        self.pool_stats = {i: {k: [0.0, 0.0, 0] for k in self.pool_names} for i in range(a.capacity)}   # mean, M2, n per slot
+        self.pool_stats = {i: {k: [0.0, 0.0, 0] for k in self.pool_names} for i in range(a.flies)}   # mean, M2, n per soul
         self.word_stats = {w: {"said": 0, "ctx": {"food": 0, "water": 0, "danger": 0, "stranger": 0, "kin": 0, "hungry": 0, "thirsty": 0},
                                "heard": 0, "approach": 0, "avoid": 0, "reward_after": 0, "punish_after": 0} for w in WORDS}
         # THE SOCIAL LAYER, from the connectome's own annotations (body-annotations feather):
@@ -285,25 +281,20 @@ class VergeSwarm:
         self.jo = idx_of(aty.str.match(r"JO-[AB]"))
         self.p1 = torch.as_tensor(np.flatnonzero(np.char.startswith(ty, "pC1")), device=dev)
         self.pip10 = torch.as_tensor(np.flatnonzero(ty == "pIP10"), device=dev)
-        self.song_stats = {i: [0.0, 0.0, 0] for i in range(a.capacity)}
+        self.song_stats = {i: [0.0, 0.0, 0] for i in range(a.flies)}
         log("  social layer: %d male-specific cells, ppk L/R %d/%d, leg bristles L/R %d/%d, JO %d, pC1 %d, pIP10 %d"
             % (len(self.male_only), len(self.ppk["L"]), len(self.ppk["R"]), len(self.touch["L"]), len(self.touch["R"]),
                len(self.jo), len(self.p1), len(self.pip10)))
-        # THE POPULATION. No individual respawn. A generation starts with the founders
-        # (per tribe: half male, half female), children are born of a courtship that the
-        # female accepted, and when the last fly dies the next generation of founders
-        # arrives. Tribe policy: in an "inherit" tribe a child's plastic KC->MBON weights
-        # are the mean of its parents' (Lamarckian - memories are NOT inherited in real
-        # flies; this is the experiment's lever, labelled); in a naive tribe a child is
-        # born with the naive brain. Everything else about a child is the connectome.
-        self.inherit_tribes = {int(x) for x in a.inherit_tribes.split(",") if x.strip() != ""}
-        os.makedirs(a.out_dir, exist_ok=True)
-        self.logf = open(os.path.join(a.out_dir, "events.jsonl"), "a")
-        self.gen = 0; self.born = 0; self.dead_souls = []; self.links = []; self.game_ticks = 0
-        self.souls = []
-        self.new_generation()
+        inherit_tribes = {int(x) for x in a.inherit_tribes.split(",") if x.strip() != ""}
+        self.souls = [Soul(i, inherit=(i // a.per_tribe) in inherit_tribes, tribe=i // a.per_tribe)
+                      for i in range(a.flies)]
+        for s in self.souls:
+            if s.sex == "F":
+                self.sw.silence(s.i, self.male_only)
         self.tribe_of_id = {}                 # player id -> tribe, learned from welcomes
         self.steps = int(round(a.tick_ms / self.sw.dt))
+        os.makedirs(a.out_dir, exist_ok=True)
+        self.logf = open(os.path.join(a.out_dir, "events.jsonl"), "a")
         self.state_path = os.path.join(a.out_dir, "state.json")
         self.deaths = []
         self.game_ticks = 0
@@ -587,17 +578,6 @@ class VergeSwarm:
             if s.singing and not was:
                 s.life["songs"] += 1; self.note(s, "song", {"to": s.court_target})
                 s.say("Hey %s, come over here a minute." % s.court_target)
-            # acceptance. A receptive female slows and stays (Coen et al. 2014); the
-            # female-specific circuit that decides this (vpoDN) is not in the male
-            # connectome, so staying within a tile of a singing male for three decisions
-            # at less than half speed IS the acceptance here, labelled as such
-            if s.sex == "F" and not s.dead:
-                suitor = next((o for o in self.souls if o.sex == "M" and o.singing and o.court_target == s.name
-                               and o.x is not None and s.x is not None and math.hypot(o.x - s.x, o.y - s.y) / TILE < 1.0), None)
-                s.recept = s.recept + 1 if (suitor and speed < 0.5) else 0
-                if (s.recept >= 3 and s.gravid_until is None and s.tick > s.refractory_until
-                        and c["hunger"] < 0.7 and suitor is not None):
-                    self.mated(s, suitor)
             if s.hears and not getattr(s, "_heard", False):
                 s.life["heard"] += 1; s.say("Someone's calling me.")
             s._heard = s.hears
@@ -690,13 +670,9 @@ class VergeSwarm:
                           "lineage": me.get("lineage") if me else None, "life": s.life, "decisions": s.decisions,
                           "weights": float(wf[s.i]), "intent": s.intent, "regions": getattr(s, "regions", None),
                           "crafted_ever": s.crafted_ever, "pack": (getattr(s, "craft_ctx", None) or {}).get("pack", {}),
-                          "gen": s.gen, "mate": s.mate, "kids": s.kids, "mother": s.mother, "father": s.father,
-                          "due": (s.gravid_until - s.tick) if s.gravid_until else None,
                           "kin_d": float(np.mean(s.kin_d[-20:])) if s.kin_d else None,
                           "stranger_d": float(np.mean(s.str_d[-20:])) if s.str_d else None})
         st = {"ticks": self.game_ticks, "wall": time.time(), "souls": souls, "pool_names": self.pool_names,
-              "gen": self.gen, "born": self.born, "alive": len(self.souls),
-              "graveyard": [{"name": d.name, "gen": d.gen, "tribe": d.tribe, "kids": d.kids, "mate": d.mate} for d in self.dead_souls[-16:]],
               "deaths": self.deaths[-30:], "odours": self.odours,
               "words": {w: {"orn": WORDS[w], "pool": self.pool_names["say_" + w], **self.word_stats[w]} for w in WORDS}}
         for path in [self.state_path] + ([self.a.state_copy] if self.a.state_copy else []):
@@ -710,74 +686,6 @@ class VergeSwarm:
                     time.sleep(0.05)
 
     # -- deaths ------------------------------------------------------------------ #
-
-    # -- population ---------------------------------------------------------- #
-
-    def place(self, s):
-        """Give a soul its brain slot: fresh dynamics, the right cells for its sex,
-        fresh pool baselines. Weights are set by the caller (naive or inherited)."""
-        self.sw.reset(flies=[s.i])
-        if self.sw.silent is not None: self.sw.silent[s.i] = False
-        if s.sex == "F": self.sw.silence(s.i, self.male_only)
-        self.pool_stats[s.i] = {k: [0.0, 0.0, 0] for k in self.pool_names}
-        self.song_stats[s.i] = [0.0, 0.0, 0]
-
-    def free_slot(self):
-        used = {s.i for s in self.souls}
-        for i in range(self.a.capacity):
-            if i not in used: return i
-        return None
-
-    def new_generation(self):
-        self.gen += 1
-        self.souls = []
-        for i in range(self.a.flies):
-            tribe = i // self.a.per_tribe
-            s = Soul(i, inherit=tribe in self.inherit_tribes, tribe=tribe, sex="M" if i % 2 == 0 else "F",
-                     born_n=self.born, gen=self.gen)
-            self.born += 1
-            self.sw.reset_weights(flies=[i]); self.place(s)
-            self.souls.append(s)
-        log("  === GENERATION %d: %d founders ===" % (self.gen, len(self.souls)))
-        self.logf.write(json.dumps({"event": "generation", "gen": self.gen, "game_tick": self.game_ticks,
-                                    "founders": [s.name for s in self.souls]}) + "\n"); self.logf.flush()
-        return self.souls
-
-    def mated(self, s, m):
-        s.mate, m.mate = m.name, s.name
-        s.gravid_until = s.tick + self.a.gestation
-        s.egg_w = self.sw.w[m.i].clone()                    # the father's weights now, in case he dies first
-        s.father_of_egg = m.name; s.recept = 0
-        s.life["mates"] += 1; m.life["mates"] += 1
-        self.note(s, "mated", {"with": m.name}); self.note(m, "mated", {"with": s.name})
-        s.say("%s and I are together now." % m.name); m.say("%s said yes." % s.name)
-        log("  ** %s accepted %s (child due at tick %d) **" % (s.name, m.name, s.gravid_until))
-
-    def births(self):
-        """Children due: a free brain slot, the mother's tribe, a coin for sex, and the
-        tribe's inheritance policy for the weights."""
-        for s in list(self.souls):
-            if s.sex != "F" or s.gravid_until is None or s.tick < s.gravid_until or s.dead: continue
-            slot = self.free_slot()
-            if slot is None: continue                        # the world is full; try next decision
-            rng = np.random.default_rng(self.born * 7919 + self.gen)
-            c = Soul(slot, inherit=s.inherit, tribe=s.tribe, sex="M" if rng.random() < 0.5 else "F",
-                     born_n=self.born, mother=s.name, father=s.father_of_egg, gen=self.gen)
-            self.born += 1
-            if s.inherit and s.egg_w is not None:
-                self.sw.w[slot] = 0.5 * (self.sw.w[s.i] + s.egg_w)
-            else:
-                self.sw.reset_weights(flies=[slot])
-            self.place(c)
-            s.kids.append(c.name)
-            for o in self.souls:
-                if o.name == s.father_of_egg: o.kids.append(c.name)
-            s.gravid_until = None; s.egg_w = None; s.refractory_until = s.tick + self.a.refractory
-            self.souls.append(c)
-            self.links.append(asyncio.get_event_loop().create_task(self.soul_link(c)))
-            self.note(s, "birth", {"child": c.name, "father": c.father, "inherits": bool(s.inherit)})
-            s.say("A child! %s." % c.name)
-            log("  ** BIRTH: %s, child of %s and %s (%s) **" % (c.name, s.name, c.father, "inherits" if s.inherit else "naive"))
 
     def reward(self, s, f, need=1.0):
         """PAM08 for a good outcome, with two limits. (1) Appetitive reward needs
@@ -817,7 +725,18 @@ class VergeSwarm:
             f"forage {s.life['forage']} drink {s.life['drink']} hits {s.life['hits']} rewards {s.life['rewards']} "
             f"weights {100*rec['weights']:.2f}%")
         s.lives += 1
-        return
+        s.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
+                  "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
+                  "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0, "words": 0, "heard_words": 0, "bumps": 0}
+        s.px = s.py = None
+        s.words_out = {}; s.heard = None; s.heard_word = None; s.last_word = None
+        s.alarm_until = 0.0; s.flick_until = 0.0; s.singing = False; s.court_target = None
+        s.hears = False; s.touching = None; s.x = s.y = None
+        s.prev_pack = None
+        s.prev = None; s.kin_d, s.str_d = [], []; s.intent = None
+        self.sw.reset(flies=[s.i])
+        if not s.inherit:
+            self.sw.reset_weights(flies=[s.i])
 
     # -- network -------------------------------------------------------------- #
 
@@ -844,13 +763,9 @@ class VergeSwarm:
                     if me and not me.get("alive", True):
                         if not s.dead_sent:
                             self.on_death(s, me)
+                            await ws.send(json.dumps({"t": "respawn"}))
                             s.dead_sent = True
-                            s.dead = True
-                            if s in self.souls: self.souls.remove(s)
-                            self.dead_souls.append(s)
-                            for o in self.souls:
-                                if o.mate == s.name: o.say("%s is gone." % s.name)
-                        return
+                        continue
                     s.dead_sent = False
                     # REAL TIME: every game tick gets an input from the current intent
                     await ws.send(json.dumps(self.tick_input(s)))
@@ -865,20 +780,12 @@ class VergeSwarm:
         while True:
             ready = [s for s in self.souls if s.snap is not None and s.id is not None and not s.dead_sent]
             if not ready:
-                if not self.souls:
-                    self.new_generation()
-                    self.links += [loop.create_task(self.soul_link(s)) for s in self.souls]
                 await asyncio.sleep(0.1); continue
             ctx = {}
             for s in ready:
                 c = self.sense(s)
                 if c: ctx[s.i] = c
             await loop.run_in_executor(None, self.step_all, ctx)
-            self.births()
-            if not self.souls:
-                log("  the last fly of generation %d has died" % self.gen)
-                self.new_generation()
-                self.links += [loop.create_task(self.soul_link(s)) for s in self.souls]
             if time.time() - last_state > 0.5:
                 last_state = time.time(); self.write_state()
             if time.time() - last_report > 30:
@@ -902,12 +809,12 @@ class VergeSwarm:
             await asyncio.sleep(0)
 
     async def run(self):
-        self.links = [asyncio.create_task(self.soul_link(s)) for s in self.souls]
+        links = [asyncio.create_task(self.soul_link(s)) for s in self.souls]
         log("  %d souls connecting to %s ..." % (len(self.souls), self.a.url))
         try:
             await self.brain_loop()
         finally:
-            for t in self.links:
+            for t in links:
                 t.cancel()
 
 
@@ -927,9 +834,6 @@ def main():
     ap.add_argument("--plume-tiles", type=float, default=12.0)
     ap.add_argument("--tick-ms", type=float, default=100.0, help="brain time per decision")
     ap.add_argument("--max-ticks", type=int, default=0)
-    ap.add_argument("--capacity", type=int, default=16, help="brain slots on the GPU: the population cap")
-    ap.add_argument("--gestation", type=int, default=1500, help="game ticks from acceptance to birth")
-    ap.add_argument("--refractory", type=int, default=3000, help="game ticks before a mother can accept again")
     ap.add_argument("--out-dir", default="../results/verge")
     ap.add_argument("--state-copy", default="", help="also write the live state here (the Verge's flies.html reads flystate.json)")
     a = ap.parse_args()
