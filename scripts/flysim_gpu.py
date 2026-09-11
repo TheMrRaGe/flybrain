@@ -116,6 +116,7 @@ class FlySwarm:
         # --- per-fly state --------------------------------------------------------
         self.ext = self.ext0.unsqueeze(0).repeat(n, 1).contiguous()          # [B, N]
         self.drive_hz = torch.zeros(n, N, device=dev)
+        self.silent = None                                                   # [B, N] bool: cells this fly does not have
         self.clear_senses()
         self.reset()
 
@@ -144,6 +145,14 @@ class FlySwarm:
             self.w[flies] = self.w0
 
     # -- senses (per fly) ------------------------------------------------------ #
+
+    def silence(self, fly, neuron_idx):
+        """Remove cells from one fly for good (a female built from the male connectome has
+        no male-specific neurons). They never spike; their synapses stay in the matrix
+        but carry nothing."""
+        if self.silent is None:
+            self.silent = torch.zeros(self.n, self.N, dtype=torch.bool, device=self.device)
+        self.silent[fly, torch.as_tensor(np.asarray(neuron_idx), device=self.device, dtype=torch.long)] = True
 
     def clear_senses(self, fly=None):
         if fly is None:
@@ -235,6 +244,7 @@ class FlySwarm:
         hz = self.drive_hz[:, self.driven_idx]
         pois = (torch.rand(B, hz.shape[1], device=self.device) < hz * (dt / 1000.0)) & free[:, self.driven_idx]
         spk[:, self.driven_idx] = pois
+        if self.silent is not None: spk &= ~self.silent
         spkf = spk.float()
         self.v = torch.where(spk, torch.full_like(self.v, p.v_reset), self.v)
         self.refrac = torch.where(spk, torch.full_like(self.refrac, p.refractory), self.refrac)

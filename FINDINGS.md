@@ -1506,3 +1506,56 @@ game): the game's own renderer over the union of what all flies currently see,
 one card per fly with a live regional-activity brain, flash feedback, View all /
 double-click-to-follow, and a persistent gold ⚒ badge + banner (localStorage) so a
 craft that happens while nobody is watching is still on screen later.
+
+## First craft, and the social layer (`verge_swarm.py`, 11 Sept 2026)
+
+**First complete gather -> craft chain.** Fly-1-07 (Tribe 1, naive, first life, decision
+470, game tick 1,385,063) made a hammer: wood and stone picked up with the action
+button, then the `makeHammer` pool - DNg03, 12 cells, no function assigned in the
+field - fired above its own baseline with the materials present and the game
+accepted the press (15 attempts, 1 accepted). One hammer is not learning; the
+per-fly `craft x/y` rate over lineages is the measure. A hammer unlocks every
+`build*` verb.
+
+**Inherit vs naive, first honest reading: no difference yet.** 109 deaths pooled
+across runs: inherit tribe mean life 135 decisions / 8.3 forages, naive 178 / 12.2;
+no trend in successive life lengths. Reasons, in order: total KC->MBON change is
+~0.5 % after 55 lives (the punishment context is noisy); what kills them is the
+Lieutenant, which reaches the brain only as a dark blob through the weakest path
+in the model (T4/T5 dark), so the mushroom body has little to associate with the
+hit; lives are short enough that a naive fly learns as much per life. The test
+that would settle it: a smellable threat through the AL, matched runs, hours.
+
+**The social layer**, every channel on the receptor the field has for it, from the
+connectome's own annotations (`body-annotations` feather: `dimorphism`,
+`receptorType`, `class/subclass`, `rootSide`):
+
+| channel | emitter | receiver in the connectome | basis |
+|---|---|---|---|
+| kin scent | every fly | ORN_VA1v (Or47b) | fly-derived methyl laurate, Dweck et al. 2015 |
+| stranger scent | other tribe | ORN_VA1d (Or88a) | fly-derived methyl palmitate; "a fly, not mine" is a labelled interface choice |
+| male pheromone | every male, volatile | ORN_DA1 (Or67d), cVA | Kurtovic et al. 2007 |
+| alarm | a fly that was just hit, 60 s | ORN_V (Gr21a/Gr63a), CO2 | Drosophila stress odorant, Suh et al. 2004 |
+| contact pheromone | touching fly, by its sex | putative_ppk23 / ppk25 leg neurons (269 / 257 cells), by side | 7,11-HD / 7-tricosene, Thistle et al. 2012, Toda et al. 2012 |
+| touch | adjacent fly | leg tactile bristles (213 cells), by side | Ramdya et al. 2015 |
+| wing flick | a fly hit or escaping, 5 s | the compound eye: a larger, brighter, varying blob | Kacsoh et al. 2015 (needs vision + MB in the receiver) |
+| song | a male whose pC1/pIP10 fire above baseline with a female within 2 tiles | JO-A / JO-B (Johnston's organ) | pIP10 is the song descending neuron |
+| gift | `give` / `cycleOffer` verb pools | the game's bond system ("gave" / "fed") | interface |
+
+**Sex.** Souls alternate male/female within a tribe. A male is the MaleCNS brain.
+A female is the MaleCNS brain with its 1,258 male-specific cells (annotation
+`dimorphism` = male-specific or potentially male-specific: P1/pC1 fru+ types,
+mAL_m*, pIP10, SMP703m, …) silenced per fly (`FlySwarm.silence`). That is a
+labelled substitute, not a female: the sexually-dimorphic cells that exist in
+both sexes with different wiring (771 annotated) are left male, and the
+female-specific circuits (female pC1 subtypes, vpoDN, the receptivity path) are
+absent. The accurate substitute is the female FlyWire brain (FAFB, Dorkenwald et
+al. 2024), which needs its own build (different naming, no VNC); flagged as the
+next model upgrade. Everything a "female" does here is what a male brain minus
+male-specific cells does with female pheromone emission.
+
+**Chat.** Each fly speaks its social events into the game's chat as an agent, rate
+limited to one line per 6 s: hit (alarm + wing flick), escape (wing flick),
+song ("*sings to Fly-0-03♀* (pIP10)"), hearing, touch, alarm smelled, gift, and
+crafts ("I made a hammer!"). The spectator page shows the same on each card and
+flashes pink on song/touch/gift.

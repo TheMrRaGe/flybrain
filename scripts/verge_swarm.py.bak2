@@ -102,8 +102,6 @@ VERBS = {
     "buildBridge":     ("bridge", ["plank", "hammer"]),
     "buildWard":       ("ward", ["block", "crowns", "hammer"]),
     "setHome":         ("a home", []),
-    "give":            ("a gift", []),                    # hands the offered item to the nearest fly (bond: gave/fed)
-    "cycleOffer":      ("a different offer", []),
 }
 # pack fields that are THINGS MADE (a tool, a garment, a container); materials gained
 # count as gathers. Both are rewarded; only these count as crafts.
@@ -132,8 +130,7 @@ class Soul:
         self.ev_base = None
         self.prev = None                     # previous (satiety, hydration, warmth, health)
         self.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
-                     "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                     "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0}
+                     "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": []}
         self.crafted_ever = []
         self.prev_pack = None
         self.lives = 0
@@ -141,20 +138,6 @@ class Soul:
         self.intent = None
         self.decisions = 0
         self.err_x = self.err_y = 0.0
-        # sex alternates within a tribe; the social state below is per life
-        self.sex = "M" if i % 2 == 0 else "F"
-        self.name = "Fly-%d-%02d%s" % (tribe, i, "\u2642" if self.sex == "M" else "\u2640")
-        self.x = self.y = None
-        self.alarm_until = 0.0; self.alarm_pos = None
-        self.flick_until = 0.0
-        self.singing = False; self.court_target = None
-        self.hears = False; self.touching = None; self.smells_alarm = False
-        self.say_q = []; self.last_say = 0.0
-
-    def say(self, text):
-        # one line per 6 s per fly, so the chat reads like a village and not a firehose
-        if time.time() - self.last_say > 6.0:
-            self.say_q.append(text); self.last_say = time.time()
 
 
 class VergeSwarm:
@@ -194,15 +177,8 @@ class VergeSwarm:
         names = ["bush", "water", "fire", "lieutenant", "beast"]
         chunks = [types[0:3], types[3:6], types[6:9], types[9:13], types[13:16]]
         self.odours = dict(zip(names, chunks))
-        # fly-to-fly channels, each on the receptor the field has for it:
-        #   kin       ORN_VA1v  Or47b  fly-derived methyl laurate/palmitoleate (Dweck et al. 2015)
-        #   stranger  ORN_VA1d  Or88a  fly-derived methyl palmitate: "a fly, not one of mine" (labelled)
-        #   male      ORN_DA1   Or67d  cVA, the male's volatile pheromone (Kurtovic et al. 2007)
-        #   alarm     ORN_V     Gr21a/Gr63a  CO2, the Drosophila stress odorant (Suh et al. 2004)
         self.odours["kin"] = ["ORN_VA1v"]
-        self.odours["stranger"] = ["ORN_VA1d"]
-        self.odours["male"] = ["ORN_DA1"]
-        self.odours["alarm"] = ["ORN_V"]
+        self.odours["stranger"] = ["ORN_DA1"]
         for k, ts in self.odours.items():
             cpu._odor_map[k] = {t: 1.0 for t in ts}
         dev = self.sw.device
@@ -240,37 +216,9 @@ class VergeSwarm:
         self.pool_names = {verb: free[i] for i, verb in enumerate(VERBS)}
         self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
         self.pool_stats = {i: {k: [0.0, 0.0, 0] for k in VERBS} for i in range(a.flies)}   # mean, M2, n per soul
-        # THE SOCIAL LAYER, from the connectome's own annotations (body-annotations feather):
-        #   dimorphism 'male-specific'      1,258 cells a female does not have -> silenced in females
-        #   receptorType putative_ppk23/25  leg pheromone neurons: 7,11-HD (female) / 7-T (male) on contact
-        #   class mechanosensory_tactile, subclass leg   leg bristles: touch (Ramdya et al. 2015)
-        #   JO-A / JO-B                     Johnston's organ, hears courtship song
-        #   pC1 (P1 in the male), pIP10     courtship command and the song descending neuron
-        # A female here is the male connectome minus its male-specific cells, labelled as such;
-        # the accurate substitute is the female FlyWire brain (see FINDINGS).
-        import pyarrow.feather as _feather
-        ann = _feather.read_table(os.path.join(a.data_dir, "body-annotations-male-cns-v1.0-minconf-0.5.feather")).to_pandas()
-        pos = {b: i for i, b in enumerate(cpu.bodyId.tolist())}
-        def idx_of(mask):
-            return np.array([pos[b] for b in ann.loc[mask, "bodyId"].tolist() if b in pos], int)
-        dim = ann["dimorphism"].astype(str); rt = ann["receptorType"].astype(str); rs = ann["rootSide"].astype(str)
-        acl = ann["class"].astype(str); asub = ann["subclass"].astype(str); aty = ann["type"].astype(str)
-        self.male_only = idx_of(dim.isin(["male-specific", "potentially male-specific"]))
-        self.ppk = {sd: idx_of(rt.str.startswith("putative_ppk") & (rs == sd)) for sd in "LR"}
-        self.touch = {sd: idx_of((acl == "mechanosensory_tactile") & (asub == "leg") & (rs == sd)) for sd in "LR"}
-        self.jo = idx_of(aty.str.match(r"JO-[AB]"))
-        self.p1 = torch.as_tensor(np.flatnonzero(np.char.startswith(ty, "pC1")), device=dev)
-        self.pip10 = torch.as_tensor(np.flatnonzero(ty == "pIP10"), device=dev)
-        self.song_stats = {i: [0.0, 0.0, 0] for i in range(a.flies)}
-        log("  social layer: %d male-specific cells, ppk L/R %d/%d, leg bristles L/R %d/%d, JO %d, pC1 %d, pIP10 %d"
-            % (len(self.male_only), len(self.ppk["L"]), len(self.ppk["R"]), len(self.touch["L"]), len(self.touch["R"]),
-               len(self.jo), len(self.p1), len(self.pip10)))
         inherit_tribes = {int(x) for x in a.inherit_tribes.split(",") if x.strip() != ""}
         self.souls = [Soul(i, inherit=(i // a.per_tribe) in inherit_tribes, tribe=i // a.per_tribe)
                       for i in range(a.flies)]
-        for s in self.souls:
-            if s.sex == "F":
-                self.sw.silence(s.i, self.male_only)
         self.tribe_of_id = {}                 # player id -> tribe, learned from welcomes
         self.steps = int(round(a.tick_ms / self.sw.dt))
         os.makedirs(a.out_dir, exist_ok=True)
@@ -287,9 +235,7 @@ class VergeSwarm:
         if not me or not me.get("alive", True):
             return None
         x, y = me["x"], me["y"]
-        s.x, s.y = x, y
         needs = me["needs"]
-        now = time.time()
         hunger = 1.0 - needs["satiety"] / NEED_MAX
         thirst = 1.0 - needs["hydration"] / NEED_MAX
         cold = 1.0 - needs["warmth"] / NEED_MAX
@@ -306,10 +252,6 @@ class VergeSwarm:
             if p and j != s.id and p.get("alive", True):
                 same = self.tribe_of_id.get(j) == s.tribe
                 pts["kin" if same else "stranger"].append((p["x"], p["y"]))
-        others = [o for o in self.souls if o is not s and o.x is not None and o.id is not None and not o.dead_sent]
-        for o in others:
-            if o.sex == "M": pts["male"].append((o.x, o.y))                      # cVA drifts from every male
-            if o.alarm_until > now and o.alarm_pos: pts["alarm"].append(o.alarm_pos)   # CO2 where a fly was hurt
         lt = snap.get("lieutenant")
         if lt: pts["lieutenant"].append((lt["x"], lt["y"]))
         for c in snap.get("creatures", []):
@@ -339,15 +281,11 @@ class VergeSwarm:
             night = (s.tick % (DAY_TICKS + NIGHT_TICKS)) >= DAY_TICKS
             ambient = 0.15 if night else 0.9
             scene = []
-            flick = {(o.x, o.y) for o in others if o.flick_until > now}
             for k, plist in pts.items():
-                if k in ("male", "alarm"): continue                             # smelled, not seen
                 lum = 1.0 if k == "fire" else 0.1
                 size = 1.2 if k in ("lieutenant", "beast", "kin", "stranger") else 1.0
                 for (px, py) in sorted(plist, key=lambda q: math.hypot(q[0] - x, q[1] - y))[:24]:
                     d = math.hypot(px - x, py - y) / TILE
-                    if (px, py) in flick:                                          # wing flicks (Kacsoh et al. 2015):
-                        size, lum = 1.8, 0.1 + 0.5 * (0.5 + 0.5 * math.sin(now * 31.4))   # spread wings, moving
                     if d < 14: scene.append((math.atan2(py - y, px - x), d, size, lum))
             sw.see(f, self.eye.idx, self.eye.render(scene, s.heading, ambient))
         if left or right:
@@ -384,21 +322,6 @@ class VergeSwarm:
             sw.drive_hz[f, self.g_water] = sw.p.max_rate_hz * min(1.0, 0.2 + 0.8 * thirst)
         if len(self.thermo):
             sw.drive_hz[f, self.thermo] = 200.0 * min(1.0, cold)
-        # contact: legs touching a neighbour (bristles on that side) and the neighbour's
-        # cuticular pheromone on the leg ppk23/ppk25 neurons - 7,11-HD if she is female,
-        # 7-tricosene if he is male (Thistle et al. 2012; Toda et al. 2012)
-        s.touching = None
-        near = sorted(((math.hypot(o.x - x, o.y - y) / TILE, o) for o in others), key=lambda q: q[0])
-        if near and near[0][0] < 1.0:
-            o = near[0][1]
-            side = "R" if math.sin(math.atan2(o.y - y, o.x - x) - s.heading) > 0 else "L"
-            sw.drive_hz[f, self.touch[side]] = 150.0
-            sw.drive_hz[f, self.ppk[side]] = 120.0
-            s.touching = o.name
-        # hearing: a male singing within two tiles drives Johnston's organ (JO-A/B)
-        s.hears = any(o.sex == "M" and o.singing and d < 2.0 for d, o in near)
-        if s.hears: sw.drive_hz[f, self.jo] = 200.0
-        s.smells_alarm = "alarm" in nearest and nearest["alarm"][0] < self.a.plume_tiles
         # hunger through its targets (Krashes 2009): MB-MP1 tonic when fed
         sw.quiet_dopamine(f)
         sw.ext[f, self.ppl101] = 8.0 * (1.0 - hunger)
@@ -409,11 +332,6 @@ class VergeSwarm:
                 sw.stimulate_type(f, "PAM08", 70.0); s.life["rewards"] += 1
             if cur[3] < s.prev[3]:
                 sw.stimulate_type(f, "PPL105", 70.0); s.life["punish"] += 1; s.life["hits"] += 1
-                # a hurt fly gives off CO2 that others avoid for minutes (Suh 2004) and
-                # flicks its wings, which flies that can see it read as danger (Kacsoh 2015)
-                s.alarm_until = now + 60.0; s.alarm_pos = (x, y); s.flick_until = now + 5.0
-                s.life["alarms"] += 1
-                s.say("hit! *flicks wings, gives off CO2 - danger here*")
         s.prev = cur
         # anything new in the pack is a gain: materials are gathers, made things are crafts
         if s.prev_pack is not None:
@@ -426,7 +344,7 @@ class VergeSwarm:
                         sw.stimulate_type(f, "PAM08", 70.0); s.life["rewards"] += 1
                     if k in MADE and s.prev_pack.get(k, 0) == 0:
                         s.life["crafted"].append(k); self.note(s, "crafted", {"item": k})
-                    elif k not in MADE and k != "water":
+                    elif k not in MADE:
                         s.life["gathered"] += 1; self.note(s, "gathered", {"material": k, "amount": v})
         s.prev_pack = pack
         return {"x": x, "y": y, "hunger": hunger, "thirst": thirst, "cold": cold, "crop_stop": crop_stop,
@@ -443,7 +361,6 @@ class VergeSwarm:
         acc = {k: torch.zeros(B, device=sw.device) for k in ("L", "R", "leg", "feed", "esc")}
         reg = {k: torch.zeros(B, device=sw.device) for k in self.regions}
         pl = {k: torch.zeros(B, device=sw.device) for k in self.pools}
-        song = torch.zeros(B, device=sw.device); p1 = torch.zeros(B, device=sw.device)
         for _ in range(self.steps):
             spk = sw.step()
             acc["L"] += spk[:, self.L].sum(1); acc["R"] += spk[:, self.R].sum(1)
@@ -451,10 +368,8 @@ class VergeSwarm:
             acc["esc"] += spk[:, self.escape].sum(1)
             for k, idx in self.regions.items(): reg[k] += spk[:, idx].sum(1)
             for k, idx in self.pools.items(): pl[k] += spk[:, idx].sum(1)
-            song += spk[:, self.pip10].sum(1); p1 += spk[:, self.p1].sum(1)
         out = {k: v.cpu().numpy() for k, v in acc.items()}
         pln = {k: v.cpu().numpy() for k, v in pl.items()}
-        songn = (song + p1 / max(len(self.p1), 1) * 4.0).cpu().numpy()      # song command plus P1 drive
         regn = {k: v.cpu().numpy() for k, v in reg.items()}
         secs = self.a.tick_ms / 1000.0
         for s in self.souls:
@@ -472,8 +387,6 @@ class VergeSwarm:
             esc = out["esc"][f] > 0
             if esc:
                 s.life["escapes"] += 1
-                s.flick_until = time.time() + 5.0
-                s.say("*flicks wings* something is coming")
                 thr = [c["nearest"][k] for k in ("lieutenant", "beast") if k in c["nearest"]]
                 if thr:
                     d, px, py = min(thr)
@@ -504,43 +417,10 @@ class VergeSwarm:
                 st[2] += 1; d = v - st[0]; st[0] += d / st[2]; st[1] += d * (v - st[0])
                 sd = math.sqrt(st[1] / max(st[2] - 1, 1)) if st[2] > 2 else 1e9
                 hot[k] = st[2] > 20 and v > st[0] + 1.5 * sd
-            # courtship: a male whose song neurons fire above their own baseline, with a
-            # female within two tiles, sings; she hears it on JO next decision
-            near_f = [o for o in self.souls if o is not s and o.sex == "F" and o.x is not None and s.x is not None
-                      and o.id is not None and not o.dead_sent and math.hypot(o.x - s.x, o.y - s.y) / TILE < 2.0]
-            st = self.song_stats[f]; v = float(songn[f])
-            st[2] += 1; d = v - st[0]; st[0] += d / st[2]; st[1] += d * (v - st[0])
-            sd = math.sqrt(st[1] / max(st[2] - 1, 1)) if st[2] > 2 else 1e9
-            was = s.singing
-            s.singing = s.sex == "M" and st[2] > 20 and v > st[0] + 1.5 * sd and bool(near_f)
-            s.court_target = near_f[0].name if s.singing else None
-            if s.singing and not was:
-                s.life["songs"] += 1; self.note(s, "song", {"to": s.court_target})
-                s.say("*sings to %s* (pIP10)" % s.court_target)
-            if s.hears and not getattr(s, "_heard", False):
-                s.life["heard"] += 1; s.say("*hears a song*")
-            s._heard = s.hears
-            if s.touching and s.touching != getattr(s, "_touched", None):
-                s.life["touches"] += 1; self.note(s, "touch", {"with": s.touching})
-                s.say("*brushes legs with %s*" % s.touching)
-            s._touched = s.touching
-            if s.smells_alarm and not getattr(s, "_alarmed", False):
-                s.say("*smells alarm CO2 - keeping away*")
-            s._alarmed = s.smells_alarm
-            # giving: the offered item to the nearest fly within reach
-            me_pl = s.snap["players"][s.id] if s.snap and s.id is not None and s.id < len(s.snap.get("players", [])) else None
-            offer = (me_pl or {}).get("offer", "wood")
-            any_near = any(o is not s and o.x is not None and s.x is not None and o.id is not None and not o.dead_sent
-                           and math.hypot(o.x - s.x, o.y - s.y) / TILE < 1.5 for o in self.souls)
-            if hot.get("give") and any_near and pack.get(offer, 0) >= 1:
-                verbs.append("give"); s.life["gave"] += 1; s.life["craft_tries"] += 1
-                self.note(s, "gave", {"item": offer}); s.say("*hands over %s*" % offer)
-            if hot.get("cycleOffer"):
-                verbs.append("cycleOffer")
             if hot.get("gather") and (cc.get("tree_near") or cc.get("rock_near")):
                 verbs.append("action"); s.life["gather_tries"] += 1; act = True; speed = 0.0
             for k, (made, needs) in VERBS.items():
-                if k in ("gather", "give", "cycleOffer") or not hot.get(k): continue
+                if k in ("gather",) or not hot.get(k): continue
                 if all(pack.get(m, 0) > 0 for m in needs):
                     verbs.append(k); s.life["craft_tries"] += 1
             s.intent = {"heading": s.heading, "speed": speed, "act": act, "evidence": evidence,
@@ -576,10 +456,7 @@ class VergeSwarm:
             me = None
             if s.snap and s.id is not None and s.id < len(s.snap.get("players", [])):
                 me = s.snap["players"][s.id]
-            souls.append({"i": s.i, "id": s.id, "name": s.name, "sex": s.sex, "tribe": s.tribe,
-                          "social": {"singing": s.singing, "to": s.court_target, "hears": s.hears, "touching": s.touching,
-                                     "alarm": s.alarm_until > time.time(), "flick": s.flick_until > time.time(),
-                                     "smells_alarm": s.smells_alarm},
+            souls.append({"i": s.i, "id": s.id, "name": "Fly-%d-%02d" % (s.tribe, s.i), "tribe": s.tribe,
                           "inherit": s.inherit, "lives": s.lives, "alive": bool(me and me.get("alive", True)),
                           "x": me["x"] if me else None, "y": me["y"] if me else None,
                           "needs": me.get("needs") if me else None, "health": me.get("health") if me else None,
@@ -608,7 +485,6 @@ class VergeSwarm:
         self.logf.write(json.dumps(rec) + "\n"); self.logf.flush()
         if event == "crafted":
             s.crafted_ever.append({"item": extra["item"], "tick": s.tick, "life": s.lives + 1})
-            s.say("I made a %s!" % extra["item"])
             log("  *** soul %d (Tribe-%d, %s) CRAFTED %s at tick %d ***" % (s.i, s.tribe, "inherit" if s.inherit else "naive", extra["item"], s.tick))
 
     def on_death(self, s: Soul, me):
@@ -624,10 +500,7 @@ class VergeSwarm:
             f"weights {100*rec['weights']:.2f}%")
         s.lives += 1
         s.life = {"born": time.time(), "ticks": 0, "forage": 0, "drink": 0, "hits": 0,
-                  "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": [],
-                  "alarms": 0, "songs": 0, "heard": 0, "touches": 0, "gave": 0}
-        s.alarm_until = 0.0; s.flick_until = 0.0; s.singing = False; s.court_target = None
-        s.hears = False; s.touching = None; s.x = s.y = None
+                  "escapes": 0, "rewards": 0, "punish": 0, "overeat": 0, "gathered": 0, "gather_tries": 0, "craft_tries": 0, "crafted": []}
         s.prev_pack = None
         s.prev = None; s.kin_d, s.str_d = [], []; s.intent = None
         self.sw.reset(flies=[s.i])
@@ -639,7 +512,7 @@ class VergeSwarm:
     async def soul_link(self, s):
         async with websockets.connect(self.a.url, max_size=None) as ws:
             s.ws = ws
-            await ws.send(json.dumps({"t": "hello", "name": s.name, "kind": "agent",
+            await ws.send(json.dumps({"t": "hello", "name": "Fly-%d-%02d" % (s.tribe, s.i), "kind": "agent",
                                       "family": "Tribe-%d" % s.tribe}))
             async for raw in ws:
                 try:
@@ -665,8 +538,6 @@ class VergeSwarm:
                     s.dead_sent = False
                     # REAL TIME: every game tick gets an input from the current intent
                     await ws.send(json.dumps(self.tick_input(s)))
-                    while s.say_q:
-                        await ws.send(json.dumps({"t": "say", "text": s.say_q.pop(0)}))
 
     async def brain_loop(self):
         """Decide for every joined, living soul as often as the GPU allows - with 8
