@@ -341,10 +341,12 @@ class Box:
         leg = cmd["leg"]
         self.feeding = touch == "food" and cmd["feed"] >= self.FEED_MN
         # DRINKING IS IMPOSED: water -> proboscis is dark in the model (see BoxBrain._run),
-        # so uptake happens on contact while stationary, gated by thirst (no drinking when
-        # sated). Eating is derived from the proboscis motor neurons. Labelled here and in
+        # so uptake happens on contact, gated by thirst (no drinking when sated) - the
+        # same contact rule eating uses minus the proboscis criterion, which water cannot
+        # meet here. The taste-feeding connectome (2025) says GRN classes broadcast to
+        # "locomotor-stop circuits"; that stop pathway is not yet identified in this model. Eating is derived from the proboscis motor neurons. Labelled here and in
         # FINDINGS so it is never mistaken for a connectome result.
-        self.drinking = touch == "water" and leg < self.LEG_STOP and drives["thirst"] > 0.1
+        self.drinking = touch == "water" and drives["thirst"] > 0.1
         bd.stopped = leg < self.LEG_STOP or self.feeding
         speed = 0.0 if bd.stopped else min(1.0, max(0.0, (leg - self.LEG_STOP) / (self.LEG_MAX - self.LEG_STOP)))
         jump = cmd["escape"] > 0
