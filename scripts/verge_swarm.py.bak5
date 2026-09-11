@@ -261,19 +261,6 @@ class VergeSwarm:
         self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
         for j, w in enumerate(WORDS): self.pool_names["say_" + w] = free[len(VERBS) + j]
         self.pools = {verb: torch.as_tensor(dn[nm == t], device=dev) for verb, t in self.pool_names.items()}
-        # The first word binding (by size) landed on types that never fire in a walking
-        # brain (DNge092/093/113 were silent for four minutes in eight flies). So every
-        # unassigned DNg type is surveyed for the first 60 decisions of a run and the
-        # words are rebound to the four most active of them (locked, logged, saved with
-        # the memory so the binding holds across sessions).
-        self.word_cands = free[len(VERBS):]
-        cand_idx = []; cand_id = []
-        for j, t in enumerate(self.word_cands):
-            ii = dn[nm == t]; cand_idx += ii.tolist(); cand_id += [j] * len(ii)
-        self.cand_idx = torch.as_tensor(cand_idx, device=dev, dtype=torch.long)
-        self.cand_id = torch.as_tensor(cand_id, device=dev, dtype=torch.long)
-        self.cand_act = torch.zeros(len(self.word_cands), device=dev)
-        self.survey_left = 60; self.words_bound = False
         self.pool_stats = {i: {k: [0.0, 0.0, 0] for k in self.pool_names} for i in range(a.capacity)}   # mean, M2, n per slot
         self.word_stats = {w: {"said": 0, "ctx": {"food": 0, "water": 0, "danger": 0, "stranger": 0, "kin": 0, "hungry": 0, "thirsty": 0},
                                "heard": 0, "approach": 0, "avoid": 0, "reward_after": 0, "punish_after": 0} for w in WORDS}
@@ -309,14 +296,12 @@ class VergeSwarm:
         # are the mean of its parents' (Lamarckian - memories are NOT inherited in real
         # flies; this is the experiment's lever, labelled); in a naive tribe a child is
         # born with the naive brain. Everything else about a child is the connectome.
-        self.inherit_tribes = (set(range(a.tribes)) if a.inherit_tribes.strip() == "all"
-                               else {int(x) for x in a.inherit_tribes.split(",") if x.strip() != ""})
+        self.inherit_tribes = {int(x) for x in a.inherit_tribes.split(",") if x.strip() != ""}
         os.makedirs(a.out_dir, exist_ok=True)
         self.logf = open(os.path.join(a.out_dir, "events.jsonl"), "a")
         self.gen = 0; self.born = 0; self.dead_souls = []; self.links = []; self.game_ticks = 0
-        self.souls = []; self.tribe_mem = {}
-        if not self.restore_memory():
-            self.new_generation()
+        self.souls = []
+        self.new_generation()
         self.tribe_of_id = {}                 # player id -> tribe, learned from welcomes
         self.steps = int(round(a.tick_ms / self.sw.dt))
         self.state_path = os.path.join(a.out_dir, "state.json")
@@ -527,11 +512,6 @@ class VergeSwarm:
             for k, idx in self.regions.items(): reg[k] += spk[:, idx].sum(1)
             for k, idx in self.pools.items(): pl[k] += spk[:, idx].sum(1)
             song += spk[:, self.pip10].sum(1); p1 += spk[:, self.p1].sum(1)
-            if not self.words_bound and self.survey_left > 0:
-                self.cand_act.index_add_(0, self.cand_id, spk[:, self.cand_idx].float().sum(0))
-        if not self.words_bound:
-            self.survey_left -= 1
-            if self.survey_left <= 0: self.bind_words()
         out = {k: v.cpu().numpy() for k, v in acc.items()}
         pln = {k: v.cpu().numpy() for k, v in pl.items()}
         songn = (song + p1 / max(len(self.p1), 1) * 4.0).cpu().numpy()      # song command plus P1 drive
@@ -742,7 +722,7 @@ class VergeSwarm:
                           "due": (s.gravid_until - s.tick) if s.gravid_until else None,
                           "kin_d": float(np.mean(s.kin_d[-20:])) if s.kin_d else None,
                           "stranger_d": float(np.mean(s.str_d[-20:])) if s.str_d else None})
-        st = {"ticks": self.game_ticks, "wall": time.time(), "souls": souls, "pool_names": self.pool_names, "hive": self.a.hive,
+        st = {"ticks": self.game_ticks, "wall": time.time(), "souls": souls, "pool_names": self.pool_names,
               "gen": self.gen, "born": self.born, "alive": len(self.souls),
               "graveyard": [{"name": d.name, "gen": d.gen, "tribe": d.tribe, "kids": d.kids, "mate": d.mate} for d in self.dead_souls[-16:]],
               "deaths": self.deaths[-30:], "odours": self.odours,
@@ -770,15 +750,6 @@ class VergeSwarm:
         self.pool_stats[s.i] = {k: [0.0, 0.0, 0] for k in self.pool_names}
         self.song_stats[s.i] = [0.0, 0.0, 0]
 
-    def sync_hive(self):
-        """Hive mode: the living members of a tribe (or of everyone) share one memory."""
-        if self.a.hive == "none": return
-        if self.a.hive == "all":
-            groups = [[s.i for s in self.souls]]
-        else:
-            groups = [[s.i for s in self.souls if s.tribe == t] for t in range(self.a.tribes)]
-        self.sw.set_hive([g for g in groups if g])
-
     def free_slot(self):
         used = {s.i for s in self.souls}
         for i in range(self.a.capacity):
@@ -793,13 +764,8 @@ class VergeSwarm:
             s = Soul(i, inherit=tribe in self.inherit_tribes, tribe=tribe, sex="M" if i % 2 == 0 else "F",
                      born_n=self.born, gen=self.gen)
             self.born += 1
-            if tribe in self.tribe_mem and s.inherit:
-                self.sw.w[i] = self.tribe_mem[tribe][0].clone()
-            else:
-                self.sw.reset_weights(flies=[i])
-            self.place(s)
+            self.sw.reset_weights(flies=[i]); self.place(s)
             self.souls.append(s)
-        self.sync_hive()
         log("  === GENERATION %d: %d founders ===" % (self.gen, len(self.souls)))
         self.logf.write(json.dumps({"event": "generation", "gen": self.gen, "game_tick": self.game_ticks,
                                     "founders": [s.name for s in self.souls]}) + "\n"); self.logf.flush()
@@ -826,9 +792,7 @@ class VergeSwarm:
             c = Soul(slot, inherit=s.inherit, tribe=s.tribe, sex="M" if rng.random() < 0.5 else "F",
                      born_n=self.born, mother=s.name, father=s.father_of_egg, gen=self.gen)
             self.born += 1
-            if self.a.hive != "none":
-                self.sw.w[slot] = self.sw.w[s.i].clone()            # born into the hive's memory
-            elif s.inherit and s.egg_w is not None:
+            if s.inherit and s.egg_w is not None:
                 self.sw.w[slot] = 0.5 * (self.sw.w[s.i] + s.egg_w)
             else:
                 self.sw.reset_weights(flies=[slot])
@@ -838,94 +802,10 @@ class VergeSwarm:
                 if o.name == s.father_of_egg: o.kids.append(c.name)
             s.gravid_until = None; s.egg_w = None; s.refractory_until = s.tick + self.a.refractory
             self.souls.append(c)
-            self.sync_hive()
             self.links.append(asyncio.get_event_loop().create_task(self.soul_link(c)))
             self.note(s, "birth", {"child": c.name, "father": c.father, "inherits": bool(s.inherit)})
             s.say("A child! %s." % c.name)
             log("  ** BIRTH: %s, child of %s and %s (%s) **" % (c.name, s.name, c.father, "inherits" if s.inherit else "naive"))
-            self.save_memory()
-
-    def bind_words(self, names=None):
-        """Rebind the four words to the most active unassigned DN types (or to the
-        names given, when restoring a memory)."""
-        if names is None:
-            act = self.cand_act.cpu().numpy()
-            order = np.argsort(-act)
-            names = [self.word_cands[i] for i in order[:len(WORDS)]]
-            log("  words bound by activity: " + ", ".join("%s->%s (%.1f spikes/decision/fly)" % (w, names[j], act[order[j]] / 60.0 / max(len(self.souls), 1))
-                                                          for j, w in enumerate(WORDS)))
-        dev = self.sw.device; cpu = self.sw.cpu
-        dn = cpu.pop["DN"]; nm = cpu.type[dn].astype(str)
-        for j, w in enumerate(WORDS):
-            self.pool_names["say_" + w] = names[j]
-            self.pools["say_" + w] = torch.as_tensor(dn[nm == names[j]], device=dev)
-        for i in self.pool_stats:
-            for w in WORDS: self.pool_stats[i]["say_" + w] = [0.0, 0.0, 0]
-        self.words_bound = True
-        self.logf.write(json.dumps({"event": "words_bound", "game_tick": self.game_ticks,
-                                    "binding": {w: self.pool_names["say_" + w] for w in WORDS}}) + "\n"); self.logf.flush()
-
-    # -- memory across sessions: one long experiment ------------------------- #
-
-    def memory_path(self):
-        return os.path.join(self.a.out_dir, "memory.pt")
-
-    def save_memory(self):
-        """Everything that makes this run THIS run: the living souls and their plastic
-        weights, the tribes' memory for the next founders, the generation count, the
-        word binding and dictionary. Written every minute and at every birth/death."""
-        rec = {"gen": self.gen, "born": self.born, "game_ticks": self.game_ticks, "word_stats": self.word_stats,
-               "binding": {w: self.pool_names["say_" + w] for w in WORDS} if self.words_bound else None,
-               "tribe_mem": {int(k): (v[0].cpu(), v[1]) for k, v in self.tribe_mem.items()},
-               "souls": [{"i": s.i, "tribe": s.tribe, "sex": s.sex, "born_n": s.born_n, "gen": s.gen, "inherit": s.inherit,
-                          "mother": s.mother, "father": s.father, "mate": s.mate, "kids": s.kids, "lives": s.lives,
-                          "crafted_ever": s.crafted_ever, "life": s.life, "w": self.sw.w[s.i].cpu()} for s in self.souls],
-               "graveyard": [{"name": d.name, "gen": d.gen, "tribe": d.tribe, "kids": d.kids, "mate": d.mate} for d in self.dead_souls[-64:]]}
-        tmp = self.memory_path() + ".tmp"
-        torch.save(rec, tmp)
-        for _ in range(5):
-            try:
-                os.replace(tmp, self.memory_path()); return
-            except PermissionError:
-                time.sleep(0.05)
-
-    def restore_memory(self):
-        p = self.memory_path()
-        if self.a.fresh or not os.path.exists(p): return False
-        try:
-            rec = torch.load(p, map_location=self.sw.device)
-        except Exception as e:
-            log("  memory unreadable (%s): starting fresh" % e); return False
-        self.gen, self.born = rec["gen"], rec["born"]
-        self.word_stats = rec.get("word_stats", self.word_stats)
-        self.tribe_mem = {int(k): (v[0].to(self.sw.device), v[1]) for k, v in rec.get("tribe_mem", {}).items()}
-        if rec.get("binding"): self.bind_words([rec["binding"][w] for w in WORDS])
-        self.souls = []
-        for r in rec["souls"]:
-            s = Soul(r["i"], inherit=r["inherit"], tribe=r["tribe"], sex=r["sex"], born_n=r["born_n"],
-                     mother=r["mother"], father=r["father"], gen=r["gen"])
-            s.mate, s.kids, s.lives, s.crafted_ever = r["mate"], r["kids"], r["lives"], r["crafted_ever"]
-            s.life = r["life"]; s.life["born"] = time.time()
-            self.place(s); self.sw.w[s.i] = r["w"].to(self.sw.device)
-            self.souls.append(s)
-        class _D: pass
-        for g in rec.get("graveyard", []):
-            d = _D(); d.name, d.gen, d.tribe, d.kids, d.mate = g["name"], g["gen"], g["tribe"], g["kids"], g["mate"]; self.dead_souls.append(d)
-        self.sync_hive()
-        log("  === MEMORY RESTORED: generation %d, %d souls, %d born, game tick %d ===" % (self.gen, len(self.souls), self.born, rec.get("game_ticks", 0)))
-        self.logf.write(json.dumps({"event": "resumed", "gen": self.gen, "souls": [s.name for s in self.souls]}) + "\n"); self.logf.flush()
-        return True
-
-    def remember_dead(self, s):
-        """A tribe's memory: the running mean of its dead members' final weights. The
-        next founders of that tribe start from it, so nothing learned is lost when a
-        generation dies out (the experiment's lever, labelled; not fly biology)."""
-        w = self.sw.w[s.i].clone()
-        if s.tribe in self.tribe_mem:
-            m, n = self.tribe_mem[s.tribe]
-            self.tribe_mem[s.tribe] = ((m * n + w) / (n + 1), n + 1)
-        else:
-            self.tribe_mem[s.tribe] = (w, 1)
 
     def reward(self, s, f, need=1.0):
         """PAM08 for a good outcome, with two limits. (1) Appetitive reward needs
@@ -961,7 +841,6 @@ class VergeSwarm:
                "weights": float(self.sw.weights_frac()[s.i]), "game_tick": s.snap.get("snap", {}).get("tick", s.tick)}
         self.logf.write(json.dumps(rec) + "\n"); self.logf.flush()
         self.deaths.append(rec)
-        self.remember_dead(s)
         log(f"  soul {s.i} ({'inherit' if s.inherit else 'naive'}) died after {s.life['ticks']} ticks: "
             f"forage {s.life['forage']} drink {s.life['drink']} hits {s.life['hits']} rewards {s.life['rewards']} "
             f"weights {100*rec['weights']:.2f}%")
@@ -997,7 +876,6 @@ class VergeSwarm:
                             s.dead = True
                             if s in self.souls: self.souls.remove(s)
                             self.dead_souls.append(s)
-                            self.sync_hive()
                             for o in self.souls:
                                 if o.mate == s.name: o.say("%s is gone." % s.name)
                         return
@@ -1033,8 +911,6 @@ class VergeSwarm:
                 log("  the last fly of generation %d has died" % self.gen)
                 self.new_generation()
                 self.links += [loop.create_task(self.soul_link(s)) for s in self.souls]
-            if time.time() - getattr(self, "_last_mem", 0) > 60:
-                self._last_mem = time.time(); self.save_memory()
             if time.time() - last_state > 0.5:
                 last_state = time.time(); self.write_state()
             if time.time() - last_report > 30:
@@ -1091,9 +967,7 @@ class VergeSwarm:
             except Exception:
                 pass
         self.souls = []; self.dead_souls = []; self.deaths = []
-        self.gen = 0; self.born = 0; self.tribe_mem = {}
-        try: os.remove(self.memory_path())
-        except OSError: pass
+        self.gen = 0; self.born = 0
         for w in self.word_stats:
             self.word_stats[w] = {"said": 0, "ctx": {k: 0 for k in self.word_stats[w]["ctx"]},
                                   "heard": 0, "approach": 0, "avoid": 0, "reward_after": 0, "punish_after": 0}
@@ -1125,10 +999,7 @@ def main():
     ap.add_argument("--odours", default="../results/odours3.json")
     ap.add_argument("--tribes", type=int, default=2)
     ap.add_argument("--per-tribe", type=int, default=4)
-    ap.add_argument("--inherit-tribes", default="all", help="comma list of tribes whose children inherit, or all")
-    ap.add_argument("--fresh", action="store_true", help="ignore the saved memory and start the experiment over")
-    ap.add_argument("--hive", default="none", choices=["none", "tribe", "all"],
-                    help="shared memory: one set of plastic weights per tribe, or one for everyone (comparison condition)")
+    ap.add_argument("--inherit-tribes", default="0", help="comma list of tribes whose brains persist across deaths")
     ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--kc-thresh", type=float, default=1.0)
     ap.add_argument("--blind", action="store_true", help="no optic lobe input (faster)")

@@ -117,6 +117,7 @@ class FlySwarm:
         self.ext = self.ext0.unsqueeze(0).repeat(n, 1).contiguous()          # [B, N]
         self.drive_hz = torch.zeros(n, N, device=dev)
         self.silent = None                                                   # [B, N] bool: cells this fly does not have
+        self.hive_groups = None; self.solo_mask = None                       # see set_hive()
         self.clear_senses()
         self.reset()
 
@@ -266,8 +267,32 @@ class FlySwarm:
         phasic = torch.clamp(self.da - self.da_base, min=0.0)
         kc = self.kc_trace[:, self.pl_pre_k] * p.kc_trace_scale                # [B,E]
         da = phasic[:, self.pl_post_m] * p.da_trace_scale
-        self.w *= (1.0 - p.learn_rate * torch.tanh(kc * da))
+        fac = 1.0 - p.learn_rate * torch.tanh(kc * da)
+        if self.hive_groups:
+            # THE HIVE: one memory per group. Every member's dopamine-tagged change is
+            # applied to the shared weights (the product of the members' factors), and
+            # every member reads the same weights back. Fly biology has nothing like it;
+            # it is a comparison condition, labelled.
+            for g in self.hive_groups:
+                shared = self.w[g[0]] * torch.exp(torch.log(fac[g].clamp(min=1e-6)).sum(0))
+                self.w[g] = shared
+            solo = self.solo_mask
+            if solo is not None: self.w[solo] *= fac[solo]
+        else:
+            self.w *= fac
         torch.maximum(self.w, self.w0 * p.min_weight_frac, out=self.w)
+
+    def set_hive(self, groups):
+        """groups: list of lists of fly slots that share one memory (None = individual
+        brains). The rows of a group are made identical now (their mean)."""
+        if not groups:
+            self.hive_groups = None; self.solo_mask = None; return
+        self.hive_groups = [torch.as_tensor(g, device=self.device, dtype=torch.long) for g in groups if len(g)]
+        for g in self.hive_groups:
+            self.w[g] = self.w[g].mean(0, keepdim=True)
+        inhive = torch.zeros(self.n, dtype=torch.bool, device=self.device)
+        for g in self.hive_groups: inhive[g] = True
+        self.solo_mask = (~inhive).nonzero(as_tuple=True)[0] if bool((~inhive).any()) else None
 
     def weights_frac(self):
         return (self.w / self.w0.clamp(min=1e-9)).mean(1).cpu().numpy()

@@ -1617,3 +1617,24 @@ deaths and generation length per tribe in `events.jsonl`.
 
 Craft tally so far: three hammers (Fly-1-07 twice across lives, Fly-1-04), all
 Tribe 1, all in the old respawn regime; one gift (wood) by Fly-1-07.
+
+## The hive mind (11 Sept 2026)
+
+`--hive tribe|all` (default in `run_verge.ps1`; `-Solo` for individual brains).
+Every fly keeps its own brain, senses and body; the plastic KC->MBON weights - the
+one place this brain learns - are a single shared vector per tribe. Each fly's
+dopamine-tagged change is applied to the shared weights (the product of the
+members' multiplicative factors, `FlySwarm.set_hive`), and every member reads the
+same weights back next step. Children are born into the hive's memory; the memory
+outlives a generation. Verified at boot: every Tribe 0 fly at 0.244 %, every
+Tribe 1 fly at 0.230 % memory change after one minute. Nothing in fly biology
+does this; it is the collective-learning comparison condition, labelled. Separate
+memory files per mode (`results/verge_hive/memory.pt`, `results/verge/memory.pt`).
+
+Also this session: memory across sessions (`memory.pt`, restored on start; `--fresh`
+or the page's Restart wipes it), tribe memory seeding the next generation's founders,
+all tribes inherit by default, words bound by a 60-decision activity survey
+(bzz->DNge129, vrr->DNg70, tik->DNg56, hum->DNg98 in the first run), the crop stop
+made a threshold after the taper stopped all feeding, the courting male tracking the
+female and the receptive female slowing, an edge reflex, a page Restart with
+confirmation via a local control port, and Telegram summaries.

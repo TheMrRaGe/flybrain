@@ -78,7 +78,10 @@ def summary(st):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--every", type=float, default=30.0, help="minutes between summaries")
+    ap.add_argument("--out", default=OUT, help="the run's results folder (results/verge or results/verge_hive)")
     a = ap.parse_args()
+    global OUT, CFG
+    OUT = a.out; CFG = os.path.join(OUT, "telegram.json")
     if not os.path.exists(CFG):
         print("no %s - see the docstring for the three-step setup" % CFG); return
     cfg = json.load(open(CFG))

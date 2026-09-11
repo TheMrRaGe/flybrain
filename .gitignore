@@ -15,3 +15,5 @@ scripts/results/
 results/box_smoke/
 results/verge/telegram.json
 results/verge/memory.pt
+results/verge_hive/telegram.json
+results/verge_hive/memory.pt
