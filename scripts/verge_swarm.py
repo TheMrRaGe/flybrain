@@ -122,7 +122,7 @@ MADE = {"spear", "hammer", "knife", "axe", "pickaxe", "hoe", "cordage", "cloak",
         "driedMeat", "plank", "block", "cookedMeat", "ironKnife", "ironAxe", "ironPickaxe", "ironHoe"}
 
 
-TILE, WORLD_W = 1000, 576
+TILE, WORLD_W, WORLD_H = 1000, 576, 192
 T_WATER, T_BUSH, T_BARE, T_FIRE = 3, 4, 5, 6
 HOSTILE = {"wolf", "hedge-boar", "bog-lynx", "ash-hound", "fen-wraith"}
 NEED_MAX = 1000.0
