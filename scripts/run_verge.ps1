@@ -30,7 +30,7 @@ Start-Process -FilePath "python3" -ArgumentList $args -WorkingDirectory $here `
   -RedirectStandardOutput (Join-Path $out "run.log") -RedirectStandardError (Join-Path $out "run.err") -WindowStyle Minimized
 Write-Host "swarm starting (brain load takes ~30 s); log: results\verge\run.log, errors: run.err, events: events.jsonl"
 
-# 3b. Telegram updates, if resultserge	elegram.json exists (see verge_telegram.py for the setup)
+# 3b. Telegram updates, if results/verge/telegram.json exists (see verge_telegram.py for the setup)
 if (Test-Path (Join-Path $out "telegram.json")) {
   Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "verge_telegram\.py" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
   Start-Process -FilePath "python3" -ArgumentList "verge_telegram.py --every 30" -WorkingDirectory $here -WindowStyle Minimized
