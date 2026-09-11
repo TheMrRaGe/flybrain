@@ -413,7 +413,7 @@ class VergeSwarm:
                 # flicks its wings, which flies that can see it read as danger (Kacsoh 2015)
                 s.alarm_until = now + 60.0; s.alarm_pos = (x, y); s.flick_until = now + 5.0
                 s.life["alarms"] += 1
-                s.say("hit! *flicks wings, gives off CO2 - danger here*")
+                s.say("Ow! I'm hurt over here - stay clear!")
         s.prev = cur
         # anything new in the pack is a gain: materials are gathers, made things are crafts
         if s.prev_pack is not None:
@@ -473,7 +473,7 @@ class VergeSwarm:
             if esc:
                 s.life["escapes"] += 1
                 s.flick_until = time.time() + 5.0
-                s.say("*flicks wings* something is coming")
+                s.say("Something's coming - watch out!")
                 thr = [c["nearest"][k] for k in ("lieutenant", "beast") if k in c["nearest"]]
                 if thr:
                     d, px, py = min(thr)
@@ -516,16 +516,16 @@ class VergeSwarm:
             s.court_target = near_f[0].name if s.singing else None
             if s.singing and not was:
                 s.life["songs"] += 1; self.note(s, "song", {"to": s.court_target})
-                s.say("*sings to %s* (pIP10)" % s.court_target)
+                s.say("Hey %s, come over here a minute." % s.court_target)
             if s.hears and not getattr(s, "_heard", False):
-                s.life["heard"] += 1; s.say("*hears a song*")
+                s.life["heard"] += 1; s.say("Someone's calling me.")
             s._heard = s.hears
             if s.touching and s.touching != getattr(s, "_touched", None):
                 s.life["touches"] += 1; self.note(s, "touch", {"with": s.touching})
-                s.say("*brushes legs with %s*" % s.touching)
+                s.say("Hi %s." % s.touching)
             s._touched = s.touching
             if s.smells_alarm and not getattr(s, "_alarmed", False):
-                s.say("*smells alarm CO2 - keeping away*")
+                s.say("Trouble that way. I'm keeping my distance.")
             s._alarmed = s.smells_alarm
             # giving: the offered item to the nearest fly within reach
             me_pl = s.snap["players"][s.id] if s.snap and s.id is not None and s.id < len(s.snap.get("players", [])) else None
@@ -534,7 +534,7 @@ class VergeSwarm:
                            and math.hypot(o.x - s.x, o.y - s.y) / TILE < 1.5 for o in self.souls)
             if hot.get("give") and any_near and pack.get(offer, 0) >= 1:
                 verbs.append("give"); s.life["gave"] += 1; s.life["craft_tries"] += 1
-                self.note(s, "gave", {"item": offer}); s.say("*hands over %s*" % offer)
+                self.note(s, "gave", {"item": offer}); s.say("Here, take this %s." % offer)
             if hot.get("cycleOffer"):
                 verbs.append("cycleOffer")
             if hot.get("gather") and (cc.get("tree_near") or cc.get("rock_near")):
@@ -608,7 +608,7 @@ class VergeSwarm:
         self.logf.write(json.dumps(rec) + "\n"); self.logf.flush()
         if event == "crafted":
             s.crafted_ever.append({"item": extra["item"], "tick": s.tick, "life": s.lives + 1})
-            s.say("I made a %s!" % extra["item"])
+            s.say("Look - I made a %s!" % extra["item"])
             log("  *** soul %d (Tribe-%d, %s) CRAFTED %s at tick %d ***" % (s.i, s.tribe, "inherit" if s.inherit else "naive", extra["item"], s.tick))
 
     def on_death(self, s: Soul, me):
