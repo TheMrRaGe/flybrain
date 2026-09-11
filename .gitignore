@@ -14,3 +14,4 @@ __pycache__/
 scripts/results/
 results/box_smoke/
 results/verge/telegram.json
+results/verge/memory.pt
