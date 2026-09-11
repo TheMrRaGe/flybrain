@@ -887,6 +887,8 @@ class VergeSwarm:
         while True:
             ready = [s for s in self.souls if s.snap is not None and s.id is not None and not s.dead_sent]
             if not ready:
+                if getattr(self, "restart_requested", False):
+                    await self.restart(); continue
                 if not self.souls:
                     self.new_generation()
                     self.links += [loop.create_task(self.soul_link(s)) for s in self.souls]
@@ -896,6 +898,8 @@ class VergeSwarm:
                 c = self.sense(s)
                 if c: ctx[s.i] = c
             await loop.run_in_executor(None, self.step_all, ctx)
+            if getattr(self, "restart_requested", False):
+                await self.restart(); continue
             self.births()
             if not self.souls:
                 log("  the last fly of generation %d has died" % self.gen)
@@ -923,9 +927,57 @@ class VergeSwarm:
                 return
             await asyncio.sleep(0)
 
+    async def control(self, reader, writer):
+        """A one-verb HTTP control port for the spectator page: POST /restart starts
+        the experiment over (every fly dies, generation 1 begins) without reloading
+        the brain. Local only."""
+        try:
+            line = await reader.readline()
+            while True:
+                h = await reader.readline()
+                if not h or h in (b"\r\n", b"\n"): break
+            parts = line.split()
+            path = parts[1].decode() if len(parts) > 1 else "/"
+            if path.startswith("/restart"):
+                self.restart_requested = True; body = b'{"ok":true,"restarting":true}'
+            else:
+                body = json.dumps({"ok": True, "gen": self.gen, "alive": len(self.souls), "born": self.born}).encode()
+            head = ("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\n"
+                    "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\nContent-Length: %d" % len(body)) + "\r\n\r\n"
+            writer.write(head.encode() + body)
+            await writer.drain()
+        except Exception:
+            pass
+        finally:
+            writer.close()
+
+    async def restart(self):
+        log("  === RESTART requested from the page: generation 1 again ===")
+        self.logf.write(json.dumps({"event": "restart", "game_tick": self.game_ticks, "gen": self.gen}) + "\n"); self.logf.flush()
+        for s in list(self.souls):
+            s.dead = True; s.dead_sent = True
+            try:
+                if getattr(s, "ws", None) is not None: await s.ws.close()
+            except Exception:
+                pass
+        self.souls = []; self.dead_souls = []; self.deaths = []
+        self.gen = 0; self.born = 0
+        for w in self.word_stats:
+            self.word_stats[w] = {"said": 0, "ctx": {k: 0 for k in self.word_stats[w]["ctx"]},
+                                  "heard": 0, "approach": 0, "avoid": 0, "reward_after": 0, "punish_after": 0}
+        self.new_generation()
+        self.links += [asyncio.get_event_loop().create_task(self.soul_link(s)) for s in self.souls]
+        self.restart_requested = False
+
     async def run(self):
+        self.restart_requested = False
         self.links = [asyncio.create_task(self.soul_link(s)) for s in self.souls]
         log("  %d souls connecting to %s ..." % (len(self.souls), self.a.url))
+        try:
+            await asyncio.start_server(self.control, "127.0.0.1", self.a.control_port)
+            log("  control port http://127.0.0.1:%d  (POST /restart)" % self.a.control_port)
+        except Exception as e:
+            log("  control port unavailable: %s" % e)
         try:
             await self.brain_loop()
         finally:
@@ -950,6 +1002,7 @@ def main():
     ap.add_argument("--tick-ms", type=float, default=100.0, help="brain time per decision")
     ap.add_argument("--max-ticks", type=int, default=0)
     ap.add_argument("--capacity", type=int, default=16, help="brain slots on the GPU: the population cap")
+    ap.add_argument("--control-port", type=int, default=8002, help="local HTTP port the page uses to restart the run")
     ap.add_argument("--gestation", type=int, default=1500, help="game ticks from acceptance to birth")
     ap.add_argument("--refractory", type=int, default=3000, help="game ticks before a mother can accept again")
     ap.add_argument("--out-dir", default="../results/verge")
